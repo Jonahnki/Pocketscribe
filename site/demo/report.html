@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pocketscribe - AF-SYNTH01-F1-model_v4.pdb</title>
+<meta name="generator" content="Pocketscribe 0.1.0">
+<meta name="description" content="Confidence-aware binding-pocket triage report for a predicted protein structure. Research use only.">
+<style>
+/* Pocketscribe report stylesheet.
+ *
+ * Inlined into the single-file HTML report. Two constraints shape it: the report must
+ * be readable offline with no network access (so no web fonts, no CDN), and it must
+ * print cleanly, because these reports get attached to grant applications and passed
+ * around lab meetings on paper.
+ *
+ * Figures keep a light plane in both themes -- see the note in report/plots.py.
+ */
+
+:root {
+  --page: #f9f9f7;
+  --surface: #ffffff;
+  --surface-sunken: #f4f3ef;
+  --ink: #17170f;
+  --ink-secondary: #52514e;
+  --ink-muted: #898781;
+  --rule: #e1e0d9;
+  --rule-strong: #c3c2b7;
+  --accent: #0b4fbf;
+
+  --caveat-none: #0ca30c;
+  --caveat-low: #b8860b;
+  --caveat-moderate: #c4511a;
+  --caveat-severe: #b0231a;
+
+  --figure-plane: #fcfcfb;
+  --mono: ui-monospace, &#34;SF Mono&#34;, &#34;SFMono-Regular&#34;, Menlo, Consolas, &#34;Liberation Mono&#34;, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, &#34;Segoe UI&#34;, Roboto, &#34;Helvetica Neue&#34;, Arial, sans-serif;
+  --serif: ui-serif, Georgia, &#34;Iowan Old Style&#34;, &#34;Times New Roman&#34;, serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme=&#34;light&#34;]) {
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-sunken: #222220;
+    --ink: #f4f3ef;
+    --ink-secondary: #c3c2b7;
+    --ink-muted: #898781;
+    --rule: #2c2c2a;
+    --rule-strong: #383835;
+    --accent: #6ca4f0;
+
+    --caveat-none: #3cc03c;
+    --caveat-low: #d9a52a;
+    --caveat-moderate: #e8834e;
+    --caveat-severe: #e86b62;
+  }
+}
+
+:root[data-theme=&#34;dark&#34;] {
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-sunken: #222220;
+  --ink: #f4f3ef;
+  --ink-secondary: #c3c2b7;
+  --ink-muted: #898781;
+  --rule: #2c2c2a;
+  --rule-strong: #383835;
+  --accent: #6ca4f0;
+
+  --caveat-none: #3cc03c;
+  --caveat-low: #d9a52a;
+  --caveat-moderate: #e8834e;
+  --caveat-severe: #e86b62;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 40px 16px 80px;
+}
+
+/* ---- Masthead ---- */
+
+header.masthead {
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 18px;
+  margin-bottom: 28px;
+}
+
+.wordmark {
+  font-family: var(--serif);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-secondary);
+  margin: 0 0 10px;
+}
+
+h1 {
+  font-family: var(--serif);
+  font-size: clamp(26px, 4.5vw, 36px);
+  line-height: 1.2;
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: 14px;
+}
+
+.subtitle code { font-family: var(--mono); font-size: 13px; }
+
+/* ---- Sections ---- */
+
+section { margin: 0 0 42px; }
+
+h2 {
+  font-family: var(--serif);
+  font-size: 21px;
+  margin: 0 0 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 15px;
+  margin: 24px 0 8px;
+  font-weight: 650;
+}
+
+.section-note {
+  color: var(--ink-secondary);
+  font-size: 13.5px;
+  margin: 0 0 16px;
+}
+
+p { margin: 0 0 14px; }
+
+/* ---- Cards and stat tiles ---- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin: 0 0 18px;
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 23px;
+  font-weight: 650;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-secondary);
+  margin-top: 2px;
+}
+
+/* ---- Tables ---- */
+
+.table-scroll { overflow-x: auto; margin: 0 0 16px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+caption {
+  caption-side: top;
+  text-align: left;
+  font-size: 12.5px;
+  color: var(--ink-secondary);
+  padding-bottom: 8px;
+}
+
+th, td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+th {
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--rule-strong);
+  white-space: nowrap;
+}
+
+td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+tbody tr:last-child td { border-bottom: none; }
+
+/* ---- Figures ---- */
+
+figure {
+  margin: 0 0 18px;
+  background: var(--figure-plane);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+figcaption {
+  font-size: 12.5px;
+  color: var(--ink-secondary);
+  margin-top: 10px;
+}
+
+.viz { display: block; max-width: 100%; height: auto; }
+
+.legend {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.legend-item { display: flex; align-items: center; gap: 7px; font-size: 12.5px; }
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+  display: inline-block;
+}
+
+.legend-label { color: #52514e; }
+.legend-value { color: #898781; font-variant-numeric: tabular-nums; }
+
+.pocket-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.meter { display: block; margin-top: 4px; }
+
+/* ---- Caveats ---- */
+
+.caveat {
+  border-left: 3px solid var(--rule-strong);
+  padding: 2px 0 2px 12px;
+  font-size: 13px;
+  color: var(--ink-secondary);
+}
+
+.caveat-none { border-left-color: var(--caveat-none); }
+.caveat-low { border-left-color: var(--caveat-low); }
+.caveat-moderate { border-left-color: var(--caveat-moderate); }
+.caveat-severe { border-left-color: var(--caveat-severe); }
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.badge-none { color: var(--caveat-none); }
+.badge-low { color: var(--caveat-low); }
+.badge-moderate { color: var(--caveat-moderate); }
+.badge-severe { color: var(--caveat-severe); }
+.badge-tier1 { color: var(--accent); }
+.badge-tier2 { color: var(--ink-secondary); }
+.badge-cross { color: var(--accent); }
+.badge-same { color: var(--caveat-low); }
+.badge-single { color: var(--ink-muted); }
+
+/* ---- Callouts ---- */
+
+.callout {
+  border: 1px solid var(--rule-strong);
+  border-left: 4px solid var(--ink-secondary);
+  border-radius: 6px;
+  background: var(--surface-sunken);
+  padding: 14px 16px;
+  margin: 0 0 18px;
+  font-size: 13.5px;
+}
+
+.callout strong { font-weight: 650; }
+.callout-warn { border-left-color: var(--caveat-moderate); }
+.callout p:last-child { margin-bottom: 0; }
+
+/* ---- Narrative ---- */
+
+.narrative p {
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.narrative-attribution {
+  font-size: 12px;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+/* ---- Appendix, lists ---- */
+
+dl.params { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; font-size: 13.5px; }
+dl.params dt { color: var(--ink-muted); }
+dl.params dd { margin: 0; }
+
+ul.plain { margin: 0 0 14px; padding-left: 20px; font-size: 13.5px; }
+ul.plain li { margin-bottom: 5px; }
+
+code, .mono { font-family: var(--mono); font-size: 12.5px; }
+
+.file-list { list-style: none; padding: 0; margin: 0; }
+.file-list li { padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: 13.5px; }
+.file-list li:last-child { border-bottom: none; }
+.file-list .fname { font-family: var(--mono); font-size: 12.5px; }
+.file-list .fdesc { color: var(--ink-secondary); display: block; }
+
+.empty { color: var(--ink-muted); font-style: italic; font-size: 13.5px; }
+
+/* ---- Disclaimer + footer ---- */
+
+.disclaimer {
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  padding: 18px 20px;
+  background: var(--surface);
+}
+
+.disclaimer h2 { border-bottom: none; margin-bottom: 8px; }
+
+footer {
+  margin-top: 48px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+
+a { color: var(--accent); }
+
+/* ---- Print ---- */
+
+@media print {
+  :root {
+    --page: #ffffff;
+    --surface: #ffffff;
+    --ink: #000000;
+    --ink-secondary: #333333;
+  }
+  body { font-size: 11pt; }
+  .wrap { max-width: none; padding: 0; }
+  section { page-break-inside: avoid; margin-bottom: 26px; }
+  figure, table, .card, .callout { page-break-inside: avoid; }
+  a { text-decoration: none; color: inherit; }
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="masthead">
+  <p class="wordmark">Pocketscribe</p>
+  <h1>Binding-pocket assessment of a predicted structure</h1>
+  <p class="subtitle">  <code>AF-SYNTH01-F1-model_v4.pdb</code> &middot; AlphaFold2</p>
+</header>
+
+
+<section id="summary">
+  <h2>Executive summary</h2>
+  <p class="section-note">
+    A first-pass, research-use triage of where a small molecule might bind this
+    predicted model, and how far the prediction can be trusted at each site.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat">
+      <span class="stat-label">Pockets detected</span>
+      <span class="stat-value">2</span>
+      <span class="stat-sub">by builtin builtin-1.0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Mean pLDDT</span>
+      <span class="stat-value">83.3</span>
+      <span class="stat-sub">20% of residues below 70</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Top pocket confidence</span>
+      <span class="stat-value">91.7</span>
+      <span class="stat-sub">mean pLDDT of its 83 lining residues</span>
+    </div>
+  </div>
+
+  <div class="callout callout-warn">
+    <p>
+      <strong>These pockets were not detected with fpocket.</strong> The
+      <code>builtin</code> fallback backend was used, which is a plain grid-based
+      buriedness scan. Its &ldquo;druggability&rdquo; column is a transparent
+      volume / buriedness / hydrophobicity heuristic documented in the methods
+      appendix &mdash; it is <em>not</em> fpocket&rsquo;s trained and validated
+      druggability score, and the two numbers are not comparable. Install fpocket and
+      re-run before drawing any scientific conclusion from these scores.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">What this report is</h3>
+    <p style="margin-bottom:0">
+      Pocketscribe took a structure predicted by AlphaFold2,
+      carried its per-residue confidence through every stage, and annotated each
+      detected cavity with what that confidence means for interpreting it. The
+      deliverable is triage: a ranked, caveated shortlist to help decide where to spend
+      docking, simulation or wet-lab effort &mdash; not a substitute for any of them.
+    </p>
+  </div>
+
+  <div class="callout">
+    <p><strong>Run warnings</strong></p>
+    <ul class="plain" style="margin-bottom:0">
+<li>fpocket was not found on PATH, so the built-in geometric fallback backend was used. Its scores are a documented heuristic, NOT fpocket druggability scores, and are not suitable for scientific interpretation.</li>    </ul>
+  </div>
+</section>
+
+<section id="input">
+  <h2>Input structure</h2>
+  <div class="table-scroll">
+    <table>
+      <caption>Provenance and composition of every structure analysed in this run.</caption>
+      <thead>
+        <tr>
+          <th>Model</th><th>Source</th><th>Support tier</th><th>Method family</th>
+          <th>Chains</th><th>Residues</th><th>Detection</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="mono">AF-SYNTH01-F1-model_v4.pdb</span></td>
+          <td>AlphaFold2</td>
+          <td>
+            <span class="badge badge-tier1">
+              Tier 1 - full support
+            </span>
+          </td>
+          <td>MSA / co-evolution</td>
+          <td class="num">1 (A)</td>
+          <td class="num">192</td>
+          <td>
+declared by user          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+    <p class="caveat"><strong>AlphaFold2:</strong> pLDDT is stored in the B-factor column on a 0-100 scale. Regions below 70 are commonly flexible or disordered; below 50 they should not be interpreted structurally.</p>
+
+</section>
+
+<section id="confidence">
+  <h2>Structure quality and prediction confidence</h2>
+  <p class="section-note">
+    Every pocket claim later in this report is caveated against this map. Regions below
+    pLDDT 70 are commonly flexible or disordered; below 50 they should not be read
+    structurally at all.
+  </p>
+
+  <figure>
+    <svg class="viz" role="img" viewBox="0 0 940 280" width="100%" preserveAspectRatio="xMidYMid meet" aria-label="Per-residue prediction confidence: pLDDT for 192 residues along the sequence."><rect x="0" y="0" width="940" height="280" fill="#fcfcfb"/><line x1="52" y1="179.5" x2="924" y2="179.5" stroke="#e1e0d9" stroke-width="1"/><text x="44" y="183.5" text-anchor="end" font-size="11" fill="#898781">25</text><line x1="52" y1="37.8" x2="924" y2="37.8" stroke="#e1e0d9" stroke-width="1"/><text x="44" y="41.8" text-anchor="end" font-size="11" fill="#898781">90</text><line x1="52" y1="16.0" x2="924" y2="16.0" stroke="#e1e0d9" stroke-width="1"/><text x="44" y="20.0" text-anchor="end" font-size="11" fill="#898781">100</text><rect x="52.00" y="31.17" width="4.54" height="202.83" fill="#0B4FBF"><title>A:ALA1 - pLDDT 93.0 (Very high)</title></rect><rect x="56.54" y="28.08" width="4.54" height="205.92" fill="#0B4FBF"><title>A:LEU2 - pLDDT 94.5 (Very high)</title></rect><rect x="61.08" y="31.28" width="4.54" height="202.72" fill="#0B4FBF"><title>A:VAL3 - pLDDT 93.0 (Very high)</title></rect><rect x="65.62" y="41.96" width="4.54" height="192.04" fill="#4C93C8"><title>A:ILE4 - pLDDT 88.1 (Confident)</title></rect><rect x="70.17" y="27.51" width="4.54" height="206.49" fill="#0B4FBF"><title>A:PHE5 - pLDDT 94.7 (Very high)</title></rect><rect x="74.71" y="30.52" width="4.54" height="203.48" fill="#0B4FBF"><title>A:LEU6 - pLDDT 93.3 (Very high)</title></rect><rect x="79.25" y="36.95" width="4.54" height="197.05" fill="#0B4FBF"><title>A:GLY7 - pLDDT 90.4 (Very high)</title></rect><rect x="83.79" y="29.65" width="4.54" height="204.35" fill="#0B4FBF"><title>A:ALA8 - pLDDT 93.7 (Very high)</title></rect><rect x="88.33" y="31.06" width="4.54" height="202.94" fill="#0B4FBF"><title>A:VAL9 - pLDDT 93.1 (Very high)</title></rect><rect x="92.88" y="31.52" width="4.54" height="202.48" fill="#0B4FBF"><title>A:LEU10 - pLDDT 92.9 (Very high)</title></rect><rect x="97.42" y="33.24" width="4.54" height="200.76" fill="#0B4FBF"><title>A:THR11 - pLDDT 92.1 (Very high)</title></rect><rect x="101.96" y="29.86" width="4.54" height="204.14" fill="#0B4FBF"><title>A:ALA12 - pLDDT 93.6 (Very high)</title></rect><rect x="106.50" y="38.26" width="4.54" height="195.74" fill="#4C93C8"><title>A:ILE13 - pLDDT 89.8 (Confident)</title></rect><rect x="111.04" y="34.51" width="4.54" height="199.49" fill="#0B4FBF"><title>A:PHE14 - pLDDT 91.5 (Very high)</title></rect><rect x="115.58" y="36.60" width="4.54" height="197.40" fill="#0B4FBF"><title>A:VAL15 - pLDDT 90.5 (Very high)</title></rect><rect x="120.12" y="29.52" width="4.54" height="204.48" fill="#0B4FBF"><title>A:GLY16 - pLDDT 93.8 (Very high)</title></rect><rect x="124.67" y="33.18" width="4.54" height="200.82" fill="#0B4FBF"><title>A:LEU17 - pLDDT 92.1 (Very high)</title></rect><rect x="129.21" y="35.36" width="4.54" height="198.64" fill="#0B4FBF"><title>A:ALA18 - pLDDT 91.1 (Very high)</title></rect><rect x="133.75" y="38.56" width="4.54" height="195.44" fill="#4C93C8"><title>A:SER19 - pLDDT 89.7 (Confident)</title></rect><rect x="138.29" y="35.12" width="4.54" height="198.88" fill="#0B4FBF"><title>A:VAL20 - pLDDT 91.2 (Very high)</title></rect><rect x="142.83" y="33.40" width="4.54" height="200.60" fill="#0B4FBF"><title>A:LEU21 - pLDDT 92.0 (Very high)</title></rect><rect x="147.38" y="35.25" width="4.54" height="198.75" fill="#0B4FBF"><title>A:ALA22 - pLDDT 91.2 (Very high)</title></rect><rect x="151.92" y="24.98" width="4.54" height="209.02" fill="#0B4FBF"><title>A:MET23 - pLDDT 95.9 (Very high)</title></rect><rect x="156.46" y="26.86" width="4.54" height="207.14" fill="#0B4FBF"><title>A:PHE24 - pLDDT 95.0 (Very high)</title></rect><rect x="161.00" y="51.16" width="4.54" height="182.84" fill="#4C93C8"><title>A:GLY25 - pLDDT 83.9 (Confident)</title></rect><rect x="165.54" y="45.80" width="4.54" height="188.20" fill="#4C93C8"><title>A:THR26 - pLDDT 86.3 (Confident)</title></rect><rect x="170.08" y="34.57" width="4.54" height="199.43" fill="#0B4FBF"><title>A:VAL27 - pLDDT 91.5 (Very high)</title></rect><rect x="174.62" y="36.21" width="4.54" height="197.79" fill="#0B4FBF"><title>A:LEU28 - pLDDT 90.7 (Very high)</title></rect><rect x="179.17" y="32.04" width="4.54" height="201.96" fill="#0B4FBF"><title>A:ILE29 - pLDDT 92.6 (Very high)</title></rect><rect x="183.71" y="32.02" width="4.54" height="201.98" fill="#0B4FBF"><title>A:ALA30 - pLDDT 92.7 (Very high)</title></rect><rect x="188.25" y="20.36" width="4.54" height="213.64" fill="#0B4FBF"><title>A:VAL31 - pLDDT 98.0 (Very high)</title></rect><rect x="192.79" y="40.72" width="4.54" height="193.28" fill="#4C93C8"><title>A:PHE32 - pLDDT 88.7 (Confident)</title></rect><rect x="197.33" y="35.90" width="4.54" height="198.10" fill="#0B4FBF"><title>A:GLY33 - pLDDT 90.9 (Very high)</title></rect><rect x="201.88" y="20.36" width="4.54" height="213.64" fill="#0B4FBF"><title>A:SER34 - pLDDT 98.0 (Very high)</title></rect><rect x="206.42" y="29.21" width="4.54" height="204.79" fill="#0B4FBF"><title>A:LEU35 - pLDDT 93.9 (Very high)</title></rect><rect x="210.96" y="29.10" width="4.54" height="204.90" fill="#0B4FBF"><title>A:VAL36 - pLDDT 94.0 (Very high)</title></rect><rect x="215.50" y="36.80" width="4.54" height="197.20" fill="#0B4FBF"><title>A:THR37 - pLDDT 90.5 (Very high)</title></rect><rect x="220.04" y="44.21" width="4.54" height="189.79" fill="#4C93C8"><title>A:ALA38 - pLDDT 87.1 (Confident)</title></rect><rect x="224.58" y="32.35" width="4.54" height="201.65" fill="#0B4FBF"><title>A:MET39 - pLDDT 92.5 (Very high)</title></rect><rect x="229.12" y="32.72" width="4.54" height="201.28" fill="#0B4FBF"><title>A:LEU40 - pLDDT 92.3 (Very high)</title></rect><rect x="233.67" y="41.46" width="4.54" height="192.54" fill="#4C93C8"><title>A:ILE41 - pLDDT 88.3 (Confident)</title></rect><rect x="238.21" y="37.91" width="4.54" height="196.09" fill="#4C93C8"><title>A:VAL42 - pLDDT 90.0 (Confident)</title></rect><rect x="242.75" y="33.92" width="4.54" height="200.08" fill="#0B4FBF"><title>A:PHE43 - pLDDT 91.8 (Very high)</title></rect><rect x="247.29" y="39.61" width="4.54" height="194.39" fill="#4C93C8"><title>A:GLY44 - pLDDT 89.2 (Confident)</title></rect><rect x="251.83" y="34.07" width="4.54" height="199.93" fill="#0B4FBF"><title>A:ALA45 - pLDDT 91.7 (Very high)</title></rect><rect x="256.38" y="32.81" width="4.54" height="201.19" fill="#0B4FBF"><title>A:ALA46 - pLDDT 92.3 (Very high)</title></rect><rect x="260.92" y="33.20" width="4.54" height="200.80" fill="#0B4FBF"><title>A:LEU47 - pLDDT 92.1 (Very high)</title></rect><rect x="265.46" y="36.75" width="4.54" height="197.25" fill="#0B4FBF"><title>A:VAL48 - pLDDT 90.5 (Very high)</title></rect><rect x="270.00" y="29.56" width="4.54" height="204.44" fill="#0B4FBF"><title>A:ILE49 - pLDDT 93.8 (Very high)</title></rect><rect x="274.54" y="27.62" width="4.54" height="206.38" fill="#0B4FBF"><title>A:PHE50 - pLDDT 94.7 (Very high)</title></rect><rect x="279.08" y="31.35" width="4.54" height="202.65" fill="#0B4FBF"><title>A:LEU51 - pLDDT 93.0 (Very high)</title></rect><rect x="283.62" y="38.78" width="4.54" height="195.22" fill="#4C93C8"><title>A:GLY52 - pLDDT 89.5 (Confident)</title></rect><rect x="288.17" y="28.67" width="4.54" height="205.33" fill="#0B4FBF"><title>A:ALA53 - pLDDT 94.2 (Very high)</title></rect><rect x="292.71" y="36.71" width="4.54" height="197.29" fill="#0B4FBF"><title>A:VAL54 - pLDDT 90.5 (Very high)</title></rect><rect x="297.25" y="27.68" width="4.54" height="206.32" fill="#0B4FBF"><title>A:LEU55 - pLDDT 94.6 (Very high)</title></rect><rect x="301.79" y="40.46" width="4.54" height="193.54" fill="#4C93C8"><title>A:THR56 - pLDDT 88.8 (Confident)</title></rect><rect x="306.33" y="27.47" width="4.54" height="206.53" fill="#0B4FBF"><title>A:ALA57 - pLDDT 94.7 (Very high)</title></rect><rect x="310.88" y="33.57" width="4.54" height="200.43" fill="#0B4FBF"><title>A:ILE58 - pLDDT 91.9 (Very high)</title></rect><rect x="315.42" y="41.62" width="4.54" height="192.38" fill="#4C93C8"><title>A:PHE59 - pLDDT 88.2 (Confident)</title></rect><rect x="319.96" y="35.49" width="4.54" height="198.51" fill="#0B4FBF"><title>A:VAL60 - pLDDT 91.1 (Very high)</title></rect><rect x="324.50" y="33.09" width="4.54" height="200.91" fill="#0B4FBF"><title>A:GLY61 - pLDDT 92.2 (Very high)</title></rect><rect x="329.04" y="31.65" width="4.54" height="202.35" fill="#0B4FBF"><title>A:LEU62 - pLDDT 92.8 (Very high)</title></rect><rect x="333.58" y="39.87" width="4.54" height="194.13" fill="#4C93C8"><title>A:ALA63 - pLDDT 89.0 (Confident)</title></rect><rect x="338.12" y="40.68" width="4.54" height="193.32" fill="#4C93C8"><title>A:SER64 - pLDDT 88.7 (Confident)</title></rect><rect x="342.67" y="32.13" width="4.54" height="201.87" fill="#0B4FBF"><title>A:VAL65 - pLDDT 92.6 (Very high)</title></rect><rect x="347.21" y="36.49" width="4.54" height="197.51" fill="#0B4FBF"><title>A:LEU66 - pLDDT 90.6 (Very high)</title></rect><rect x="351.75" y="31.89" width="4.54" height="202.11" fill="#0B4FBF"><title>A:ALA67 - pLDDT 92.7 (Very high)</title></rect><rect x="356.29" y="28.47" width="4.54" height="205.53" fill="#0B4FBF"><title>A:MET68 - pLDDT 94.3 (Very high)</title></rect><rect x="360.83" y="44.23" width="4.54" height="189.77" fill="#4C93C8"><title>A:PHE69 - pLDDT 87.0 (Confident)</title></rect><rect x="365.38" y="31.78" width="4.54" height="202.22" fill="#0B4FBF"><title>A:GLY70 - pLDDT 92.8 (Very high)</title></rect><rect x="369.92" y="25.44" width="4.54" height="208.56" fill="#0B4FBF"><title>A:THR71 - pLDDT 95.7 (Very high)</title></rect><rect x="374.46" y="35.38" width="4.54" height="198.62" fill="#0B4FBF"><title>A:VAL72 - pLDDT 91.1 (Very high)</title></rect><rect x="379.00" y="38.74" width="4.54" height="195.26" fill="#4C93C8"><title>A:LEU73 - pLDDT 89.6 (Confident)</title></rect><rect x="383.54" y="28.51" width="4.54" height="205.49" fill="#0B4FBF"><title>A:ILE74 - pLDDT 94.3 (Very high)</title></rect><rect x="388.08" y="31.78" width="4.54" height="202.22" fill="#0B4FBF"><title>A:ALA75 - pLDDT 92.8 (Very high)</title></rect><rect x="392.62" y="27.58" width="4.54" height="206.42" fill="#0B4FBF"><title>A:VAL76 - pLDDT 94.7 (Very high)</title></rect><rect x="397.17" y="35.71" width="4.54" height="198.29" fill="#0B4FBF"><title>A:PHE77 - pLDDT 91.0 (Very high)</title></rect><rect x="401.71" y="43.14" width="4.54" height="190.86" fill="#4C93C8"><title>A:GLY78 - pLDDT 87.5 (Confident)</title></rect><rect x="406.25" y="34.16" width="4.54" height="199.84" fill="#0B4FBF"><title>A:SER79 - pLDDT 91.7 (Very high)</title></rect><rect x="410.79" y="36.36" width="4.54" height="197.64" fill="#0B4FBF"><title>A:LEU80 - pLDDT 90.7 (Very high)</title></rect><rect x="415.33" y="28.36" width="4.54" height="205.64" fill="#0B4FBF"><title>A:VAL81 - pLDDT 94.3 (Very high)</title></rect><rect x="419.88" y="32.18" width="4.54" height="201.82" fill="#0B4FBF"><title>A:THR82 - pLDDT 92.6 (Very high)</title></rect><rect x="424.42" y="44.10" width="4.54" height="189.90" fill="#4C93C8"><title>A:ALA83 - pLDDT 87.1 (Confident)</title></rect><rect x="428.96" y="41.27" width="4.54" height="192.73" fill="#4C93C8"><title>A:MET84 - pLDDT 88.4 (Confident)</title></rect><rect x="433.50" y="27.66" width="4.54" height="206.34" fill="#0B4FBF"><title>A:LEU85 - pLDDT 94.7 (Very high)</title></rect><rect x="438.04" y="28.99" width="4.54" height="205.01" fill="#0B4FBF"><title>A:ILE86 - pLDDT 94.0 (Very high)</title></rect><rect x="442.58" y="37.63" width="4.54" height="196.37" fill="#0B4FBF"><title>A:VAL87 - pLDDT 90.1 (Very high)</title></rect><rect x="447.12" y="33.44" width="4.54" height="200.56" fill="#0B4FBF"><title>A:PHE88 - pLDDT 92.0 (Very high)</title></rect><rect x="451.67" y="30.52" width="4.54" height="203.48" fill="#0B4FBF"><title>A:GLY89 - pLDDT 93.3 (Very high)</title></rect><rect x="456.21" y="30.37" width="4.54" height="203.63" fill="#0B4FBF"><title>A:ALA90 - pLDDT 93.4 (Very high)</title></rect><rect x="460.75" y="27.71" width="4.54" height="206.29" fill="#0B4FBF"><title>A:ALA91 - pLDDT 94.6 (Very high)</title></rect><rect x="465.29" y="31.76" width="4.54" height="202.24" fill="#0B4FBF"><title>A:LEU92 - pLDDT 92.8 (Very high)</title></rect><rect x="469.83" y="34.05" width="4.54" height="199.95" fill="#0B4FBF"><title>A:VAL93 - pLDDT 91.7 (Very high)</title></rect><rect x="474.38" y="35.14" width="4.54" height="198.86" fill="#0B4FBF"><title>A:ILE94 - pLDDT 91.2 (Very high)</title></rect><rect x="478.92" y="26.53" width="4.54" height="207.47" fill="#0B4FBF"><title>A:PHE95 - pLDDT 95.2 (Very high)</title></rect><rect x="483.46" y="48.15" width="4.54" height="185.84" fill="#4C93C8"><title>A:LEU96 - pLDDT 85.2 (Confident)</title></rect><rect x="488.00" y="34.36" width="4.54" height="199.64" fill="#0B4FBF"><title>A:GLY97 - pLDDT 91.6 (Very high)</title></rect><rect x="492.54" y="33.22" width="4.54" height="200.78" fill="#0B4FBF"><title>A:ALA98 - pLDDT 92.1 (Very high)</title></rect><rect x="497.08" y="42.77" width="4.54" height="191.23" fill="#4C93C8"><title>A:VAL99 - pLDDT 87.7 (Confident)</title></rect><rect x="501.63" y="31.26" width="4.54" height="202.74" fill="#0B4FBF"><title>A:LEU100 - pLDDT 93.0 (Very high)</title></rect><rect x="506.17" y="37.69" width="4.54" height="196.31" fill="#0B4FBF"><title>A:THR101 - pLDDT 90.0 (Very high)</title></rect><rect x="510.71" y="27.79" width="4.54" height="206.21" fill="#0B4FBF"><title>A:ALA102 - pLDDT 94.6 (Very high)</title></rect><rect x="515.25" y="34.27" width="4.54" height="199.73" fill="#0B4FBF"><title>A:ILE103 - pLDDT 91.6 (Very high)</title></rect><rect x="519.79" y="29.06" width="4.54" height="204.94" fill="#0B4FBF"><title>A:PHE104 - pLDDT 94.0 (Very high)</title></rect><rect x="524.33" y="25.46" width="4.54" height="208.54" fill="#0B4FBF"><title>A:VAL105 - pLDDT 95.7 (Very high)</title></rect><rect x="528.88" y="30.93" width="4.54" height="203.07" fill="#0B4FBF"><title>A:GLY106 - pLDDT 93.2 (Very high)</title></rect><rect x="533.42" y="39.17" width="4.54" height="194.83" fill="#4C93C8"><title>A:LEU107 - pLDDT 89.4 (Confident)</title></rect><rect x="537.96" y="43.34" width="4.54" height="190.66" fill="#4C93C8"><title>A:ALA108 - pLDDT 87.5 (Confident)</title></rect><rect x="542.50" y="21.97" width="4.54" height="212.03" fill="#0B4FBF"><title>A:SER109 - pLDDT 97.3 (Very high)</title></rect><rect x="547.04" y="34.16" width="4.54" height="199.84" fill="#0B4FBF"><title>A:VAL110 - pLDDT 91.7 (Very high)</title></rect><rect x="551.58" y="37.95" width="4.54" height="196.05" fill="#4C93C8"><title>A:LEU111 - pLDDT 89.9 (Confident)</title></rect><rect x="556.12" y="32.50" width="4.54" height="201.50" fill="#0B4FBF"><title>A:ALA112 - pLDDT 92.4 (Very high)</title></rect><rect x="560.67" y="34.68" width="4.54" height="199.32" fill="#0B4FBF"><title>A:MET113 - pLDDT 91.4 (Very high)</title></rect><rect x="565.21" y="27.86" width="4.54" height="206.14" fill="#0B4FBF"><title>A:PHE114 - pLDDT 94.6 (Very high)</title></rect><rect x="569.75" y="33.22" width="4.54" height="200.78" fill="#0B4FBF"><title>A:GLY115 - pLDDT 92.1 (Very high)</title></rect><rect x="574.29" y="33.35" width="4.54" height="200.65" fill="#0B4FBF"><title>A:THR116 - pLDDT 92.0 (Very high)</title></rect><rect x="578.83" y="45.39" width="4.54" height="188.61" fill="#4C93C8"><title>A:VAL117 - pLDDT 86.5 (Confident)</title></rect><rect x="583.38" y="44.86" width="4.54" height="189.14" fill="#4C93C8"><title>A:LEU118 - pLDDT 86.8 (Confident)</title></rect><rect x="587.92" y="61.87" width="4.54" height="172.13" fill="#4C93C8"><title>A:ILE119 - pLDDT 79.0 (Confident)</title></rect><rect x="592.46" y="57.83" width="4.54" height="176.17" fill="#4C93C8"><title>A:ALA120 - pLDDT 80.8 (Confident)</title></rect><rect x="597.00" y="59.19" width="4.54" height="174.81" fill="#4C93C8"><title>A:VAL121 - pLDDT 80.2 (Confident)</title></rect><rect x="601.54" y="85.96" width="4.54" height="148.04" fill="#B8860B"><title>A:PHE122 - pLDDT 67.9 (Low)</title></rect><rect x="606.08" y="98.75" width="4.54" height="135.25" fill="#B8860B"><title>A:GLY123 - pLDDT 62.0 (Low)</title></rect><rect x="610.62" y="85.04" width="4.54" height="148.96" fill="#B8860B"><title>A:SER124 - pLDDT 68.3 (Low)</title></rect><rect x="615.17" y="82.21" width="4.54" height="151.79" fill="#B8860B"><title>A:LEU125 - pLDDT 69.6 (Low)</title></rect><rect x="619.71" y="107.78" width="4.54" height="126.22" fill="#B8860B"><title>A:VAL126 - pLDDT 57.9 (Low)</title></rect><rect x="624.25" y="115.10" width="4.54" height="118.90" fill="#B8860B"><title>A:THR127 - pLDDT 54.5 (Low)</title></rect><rect x="628.79" y="108.45" width="4.54" height="125.55" fill="#B8860B"><title>A:ALA128 - pLDDT 57.6 (Low)</title></rect><rect x="633.33" y="122.86" width="4.54" height="111.14" fill="#B8860B"><title>A:MET129 - pLDDT 51.0 (Low)</title></rect><rect x="637.88" y="125.37" width="4.54" height="108.63" fill="#B0431A"><title>A:LEU130 - pLDDT 49.8 (Very low)</title></rect><rect x="642.42" y="128.68" width="4.54" height="105.32" fill="#B0431A"><title>A:ILE131 - pLDDT 48.3 (Very low)</title></rect><rect x="646.96" y="126.90" width="4.54" height="107.10" fill="#B0431A"><title>A:VAL132 - pLDDT 49.1 (Very low)</title></rect><rect x="651.50" y="136.60" width="4.54" height="97.40" fill="#B0431A"><title>A:PHE133 - pLDDT 44.7 (Very low)</title></rect><rect x="656.04" y="135.29" width="4.54" height="98.71" fill="#B0431A"><title>A:GLY134 - pLDDT 45.3 (Very low)</title></rect><rect x="660.58" y="140.98" width="4.54" height="93.02" fill="#B0431A"><title>A:ALA135 - pLDDT 42.7 (Very low)</title></rect><rect x="665.12" y="147.63" width="4.54" height="86.37" fill="#B0431A"><title>A:ALA136 - pLDDT 39.6 (Very low)</title></rect><rect x="669.67" y="146.06" width="4.54" height="87.94" fill="#B0431A"><title>A:LEU137 - pLDDT 40.3 (Very low)</title></rect><rect x="674.21" y="151.55" width="4.54" height="82.45" fill="#B0431A"><title>A:VAL138 - pLDDT 37.8 (Very low)</title></rect><rect x="678.75" y="146.23" width="4.54" height="87.77" fill="#B0431A"><title>A:ILE139 - pLDDT 40.3 (Very low)</title></rect><rect x="683.29" y="154.08" width="4.54" height="79.92" fill="#B0431A"><title>A:PHE140 - pLDDT 36.7 (Very low)</title></rect><rect x="687.83" y="153.89" width="4.54" height="80.11" fill="#B0431A"><title>A:LEU141 - pLDDT 36.8 (Very low)</title></rect><rect x="692.38" y="136.75" width="4.54" height="97.25" fill="#B0431A"><title>A:GLY142 - pLDDT 44.6 (Very low)</title></rect><rect x="696.92" y="145.69" width="4.54" height="88.31" fill="#B0431A"><title>A:ALA143 - pLDDT 40.5 (Very low)</title></rect><rect x="701.46" y="144.31" width="4.54" height="89.69" fill="#B0431A"><title>A:VAL144 - pLDDT 41.1 (Very low)</title></rect><rect x="706.00" y="138.78" width="4.54" height="95.22" fill="#B0431A"><title>A:LEU145 - pLDDT 43.7 (Very low)</title></rect><rect x="710.54" y="142.57" width="4.54" height="91.43" fill="#B0431A"><title>A:THR146 - pLDDT 41.9 (Very low)</title></rect><rect x="715.08" y="138.60" width="4.54" height="95.40" fill="#B0431A"><title>A:ALA147 - pLDDT 43.8 (Very low)</title></rect><rect x="719.62" y="131.17" width="4.54" height="102.83" fill="#B0431A"><title>A:ILE148 - pLDDT 47.2 (Very low)</title></rect><rect x="724.17" y="128.53" width="4.54" height="105.47" fill="#B0431A"><title>A:PHE149 - pLDDT 48.4 (Very low)</title></rect><rect x="728.71" y="134.00" width="4.54" height="100.00" fill="#B0431A"><title>A:VAL150 - pLDDT 45.9 (Very low)</title></rect><rect x="733.25" y="116.63" width="4.54" height="117.37" fill="#B8860B"><title>A:GLY151 - pLDDT 53.8 (Low)</title></rect><rect x="737.79" y="121.23" width="4.54" height="112.77" fill="#B8860B"><title>A:LEU152 - pLDDT 51.7 (Low)</title></rect><rect x="742.33" y="119.20" width="4.54" height="114.80" fill="#B8860B"><title>A:ALA153 - pLDDT 52.7 (Low)</title></rect><rect x="746.88" y="112.81" width="4.54" height="121.19" fill="#B8860B"><title>A:SER154 - pLDDT 55.6 (Low)</title></rect><rect x="751.42" y="103.79" width="4.54" height="130.21" fill="#B8860B"><title>A:VAL155 - pLDDT 59.7 (Low)</title></rect><rect x="755.96" y="84.65" width="4.54" height="149.35" fill="#B8860B"><title>A:LEU156 - pLDDT 68.5 (Low)</title></rect><rect x="760.50" y="96.75" width="4.54" height="137.25" fill="#B8860B"><title>A:ALA157 - pLDDT 63.0 (Low)</title></rect><rect x="765.04" y="81.57" width="4.54" height="152.43" fill="#B8860B"><title>A:MET158 - pLDDT 69.9 (Low)</title></rect><rect x="769.58" y="89.97" width="4.54" height="144.03" fill="#B8860B"><title>A:PHE159 - pLDDT 66.1 (Low)</title></rect><rect x="774.12" y="69.17" width="4.54" height="164.83" fill="#4C93C8"><title>A:GLY160 - pLDDT 75.6 (Confident)</title></rect><rect x="778.67" y="56.31" width="4.54" height="177.69" fill="#4C93C8"><title>A:THR161 - pLDDT 81.5 (Confident)</title></rect><rect x="783.21" y="56.66" width="4.54" height="177.34" fill="#4C93C8"><title>A:VAL162 - pLDDT 81.3 (Confident)</title></rect><rect x="787.75" y="52.06" width="4.54" height="181.94" fill="#4C93C8"><title>A:LEU163 - pLDDT 83.5 (Confident)</title></rect><rect x="792.29" y="39.20" width="4.54" height="194.80" fill="#4C93C8"><title>A:ILE164 - pLDDT 89.4 (Confident)</title></rect><rect x="796.83" y="28.86" width="4.54" height="205.14" fill="#0B4FBF"><title>A:ALA165 - pLDDT 94.1 (Very high)</title></rect><rect x="801.38" y="29.10" width="4.54" height="204.90" fill="#0B4FBF"><title>A:VAL166 - pLDDT 94.0 (Very high)</title></rect><rect x="805.92" y="20.53" width="4.54" height="213.47" fill="#0B4FBF"><title>A:PHE167 - pLDDT 97.9 (Very high)</title></rect><rect x="810.46" y="32.07" width="4.54" height="201.93" fill="#0B4FBF"><title>A:GLY168 - pLDDT 92.6 (Very high)</title></rect><rect x="815.00" y="37.32" width="4.54" height="196.68" fill="#0B4FBF"><title>A:SER169 - pLDDT 90.2 (Very high)</title></rect><rect x="819.54" y="34.27" width="4.54" height="199.73" fill="#0B4FBF"><title>A:LEU170 - pLDDT 91.6 (Very high)</title></rect><rect x="824.08" y="33.92" width="4.54" height="200.08" fill="#0B4FBF"><title>A:VAL171 - pLDDT 91.8 (Very high)</title></rect><rect x="828.62" y="32.72" width="4.54" height="201.28" fill="#0B4FBF"><title>A:THR172 - pLDDT 92.3 (Very high)</title></rect><rect x="833.17" y="33.64" width="4.54" height="200.36" fill="#0B4FBF"><title>A:ALA173 - pLDDT 91.9 (Very high)</title></rect><rect x="837.71" y="32.31" width="4.54" height="201.69" fill="#0B4FBF"><title>A:MET174 - pLDDT 92.5 (Very high)</title></rect><rect x="842.25" y="44.36" width="4.54" height="189.64" fill="#4C93C8"><title>A:LEU175 - pLDDT 87.0 (Confident)</title></rect><rect x="846.79" y="28.01" width="4.54" height="205.99" fill="#0B4FBF"><title>A:ILE176 - pLDDT 94.5 (Very high)</title></rect><rect x="851.33" y="37.19" width="4.54" height="196.81" fill="#0B4FBF"><title>A:VAL177 - pLDDT 90.3 (Very high)</title></rect><rect x="855.88" y="41.11" width="4.54" height="192.89" fill="#4C93C8"><title>A:PHE178 - pLDDT 88.5 (Confident)</title></rect><rect x="860.42" y="29.28" width="4.54" height="204.72" fill="#0B4FBF"><title>A:GLY179 - pLDDT 93.9 (Very high)</title></rect><rect x="864.96" y="24.83" width="4.54" height="209.17" fill="#0B4FBF"><title>A:ALA180 - pLDDT 96.0 (Very high)</title></rect><rect x="869.50" y="30.21" width="4.54" height="203.79" fill="#0B4FBF"><title>A:ALA181 - pLDDT 93.5 (Very high)</title></rect><rect x="874.04" y="32.39" width="4.54" height="201.61" fill="#0B4FBF"><title>A:LEU182 - pLDDT 92.5 (Very high)</title></rect><rect x="878.58" y="39.54" width="4.54" height="194.46" fill="#4C93C8"><title>A:VAL183 - pLDDT 89.2 (Confident)</title></rect><rect x="883.12" y="20.36" width="4.54" height="213.64" fill="#0B4FBF"><title>A:ILE184 - pLDDT 98.0 (Very high)</title></rect><rect x="887.67" y="27.68" width="4.54" height="206.32" fill="#0B4FBF"><title>A:PHE185 - pLDDT 94.6 (Very high)</title></rect><rect x="892.21" y="40.90" width="4.54" height="193.10" fill="#4C93C8"><title>A:LEU186 - pLDDT 88.6 (Confident)</title></rect><rect x="896.75" y="38.54" width="4.54" height="195.46" fill="#4C93C8"><title>A:GLY187 - pLDDT 89.7 (Confident)</title></rect><rect x="901.29" y="32.87" width="4.54" height="201.13" fill="#0B4FBF"><title>A:ALA188 - pLDDT 92.3 (Very high)</title></rect><rect x="905.83" y="43.60" width="4.54" height="190.40" fill="#4C93C8"><title>A:VAL189 - pLDDT 87.3 (Confident)</title></rect><rect x="910.38" y="32.33" width="4.54" height="201.67" fill="#0B4FBF"><title>A:LEU190 - pLDDT 92.5 (Very high)</title></rect><rect x="914.92" y="36.45" width="4.54" height="197.55" fill="#0B4FBF"><title>A:THR191 - pLDDT 90.6 (Very high)</title></rect><rect x="919.46" y="25.42" width="4.54" height="208.58" fill="#0B4FBF"><title>A:ALA192 - pLDDT 95.7 (Very high)</title></rect><line x1="52" y1="81.4" x2="924" y2="81.4" stroke="#52514e" stroke-width="1.5" stroke-dasharray="5 3"/><text x="44" y="85.4" text-anchor="end" font-size="11" font-weight="600" fill="#52514e">70</text><line x1="52" y1="125.0" x2="924" y2="125.0" stroke="#52514e" stroke-width="1.5" stroke-dasharray="5 3"/><text x="44" y="129.0" text-anchor="end" font-size="11" font-weight="600" fill="#52514e">50</text><line x1="52" y1="234" x2="924" y2="234" stroke="#c3c2b7" stroke-width="1"/><line x1="52.0" y1="234" x2="52.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="52.0" y="251" text-anchor="middle" font-size="11" fill="#898781">1</text><line x1="161.0" y1="234" x2="161.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="161.0" y="251" text-anchor="middle" font-size="11" fill="#898781">25</text><line x1="270.0" y1="234" x2="270.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="270.0" y="251" text-anchor="middle" font-size="11" fill="#898781">49</text><line x1="379.0" y1="234" x2="379.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="379.0" y="251" text-anchor="middle" font-size="11" fill="#898781">73</text><line x1="488.0" y1="234" x2="488.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="488.0" y="251" text-anchor="middle" font-size="11" fill="#898781">97</text><line x1="597.0" y1="234" x2="597.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="597.0" y="251" text-anchor="middle" font-size="11" fill="#898781">121</text><line x1="706.0" y1="234" x2="706.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="706.0" y="251" text-anchor="middle" font-size="11" fill="#898781">145</text><line x1="815.0" y1="234" x2="815.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="815.0" y="251" text-anchor="middle" font-size="11" fill="#898781">169</text><text x="488" y="274" text-anchor="middle" font-size="11" fill="#52514e">Residue (sequence order)</text><text x="14" y="125" font-size="11" fill="#52514e" transform="rotate(-90 14 125)" text-anchor="middle">pLDDT</text></svg>
+    <ul class="legend"><li class="legend-item"><span class="swatch" style="background:#0B4FBF"></span><span class="legend-label">Very high (pLDDT &gt;= 90)</span><span class="legend-value">113 (59%)</span></li><li class="legend-item"><span class="swatch" style="background:#4C93C8"></span><span class="legend-label">Confident (70-90)</span><span class="legend-value">41 (21%)</span></li><li class="legend-item"><span class="swatch" style="background:#B8860B"></span><span class="legend-label">Low (50-70)</span><span class="legend-value">17 (9%)</span></li><li class="legend-item"><span class="swatch" style="background:#B0431A"></span><span class="legend-label">Very low (&lt; 50)</span><span class="legend-value">21 (11%)</span></li></ul>
+    <figcaption>
+      Per-residue pLDDT along the sequence of
+      <span class="mono">AF-SYNTH01-F1-model_v4.pdb</span>. Dashed lines mark the 70 and 50
+      interpretation thresholds. Hover any residue for its exact value.
+    </figcaption>
+  </figure>
+
+  <div class="stat-row">
+    <div class="stat">
+      <span class="stat-label">Mean</span>
+      <span class="stat-value">83.3</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Median</span>
+      <span class="stat-value">91.1</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Below 70</span>
+      <span class="stat-value">20%</span>
+      <span class="stat-sub">1 contiguous region(s)</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Below 50</span>
+      <span class="stat-value">11%</span>
+      <span class="stat-sub">1 contiguous region(s)</span>
+    </div>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <caption>
+        Residue counts per confidence band &mdash; the same data as the figure, as a table.
+      </caption>
+      <thead><tr><th>Band</th><th>Residues</th><th>Share</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Very high (pLDDT &gt;= 90)</td>
+          <td class="num">113</td>
+          <td class="num">58.9%</td>
+        </tr>
+        <tr>
+          <td>Confident (70-90)</td>
+          <td class="num">41</td>
+          <td class="num">21.4%</td>
+        </tr>
+        <tr>
+          <td>Low (50-70)</td>
+          <td class="num">17</td>
+          <td class="num">8.9%</td>
+        </tr>
+        <tr>
+          <td>Very low (&lt; 50)</td>
+          <td class="num">21</td>
+          <td class="num">10.9%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Regions below pLDDT 50</h3>
+  <div class="table-scroll">
+    <table>
+      <caption>Contiguous runs of very-low-confidence residues. A pocket overlapping one of these is flagged in the pocket table.</caption>
+      <thead><tr><th>Region</th><th>Length</th><th>Mean pLDDT</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="mono">A:130-150</td>
+          <td class="num">21</td>
+          <td class="num">43.3</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>
+
+<section id="pockets">
+  <h2>Ranked pockets</h2>
+  <p class="section-note">
+    Ranked by the built-in heuristic score (not a validated druggability model).
+    The confidence column is not a second opinion on druggability &mdash; it says how far
+    the underlying prediction supports the geometry that produced the score.
+  </p>
+
+  <div class="table-scroll">
+    <table>
+      <caption>
+        2 pocket(s) detected; showing all.
+        Volumes in &#8491;&sup3;.
+      </caption>
+      <thead>
+        <tr>
+          <th>Rank</th><th>Volume</th><th>Druggability</th><th>Hydrophobicity</th>
+          <th>Polarity</th><th>Lining residues</th><th>Mean pLDDT</th><th>Caveat</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="num"><strong>1</strong></td>
+          <td class="num">895</td>
+          <td class="num">0.850</td>
+          <td class="num">60.7</td>
+          <td class="num">39.3</td>
+          <td class="num">83</td>
+          <td class="num">
+            91.7
+            <svg class="meter" viewBox="0 0 180 10" width="180" height="10" role="img" aria-label="0% of lining residues below pLDDT 70"><rect x="0" y="0" width="180" height="10" rx="3" fill="#e1e0d9"/><rect x="0" y="0" width="0.0" height="10" rx="3" fill="#B8860B"/></svg>
+          </td>
+          <td>
+            <span class="badge badge-none">none</span>
+          </td>
+        </tr>
+        <tr>
+          <td class="num"><strong>2</strong></td>
+          <td class="num">220</td>
+          <td class="num">0.624</td>
+          <td class="num">62.6</td>
+          <td class="num">37.4</td>
+          <td class="num">56</td>
+          <td class="num">
+            74.0
+            <svg class="meter" viewBox="0 0 180 10" width="180" height="10" role="img" aria-label="41% of lining residues below pLDDT 70"><rect x="0" y="0" width="180" height="10" rx="3" fill="#e1e0d9"/><rect x="0" y="0" width="74.0" height="10" rx="3" fill="#B8860B"/></svg>
+          </td>
+          <td>
+            <span class="badge badge-moderate">moderate</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Confidence caveats in full</h3>
+  <p class="caveat caveat-none">
+    <strong>Pocket 1.</strong> Mean pLDDT of the 83 lining residues is 91.7 (lowest 83.9; 0% below 70, 0% below 50). The residues lining this pocket are confidently predicted. The usual caveat still applies: this is a computational model, not an experimental structure, and side-chain rotamers in apo predictions often differ from the ligand-bound state.
+  </p>
+  <p class="caveat caveat-moderate">
+    <strong>Pocket 2.</strong> Mean pLDDT of the 56 lining residues is 74.0 (lowest 36.8; 41% below 70, 20% below 50). A meaningful part of this pocket is predicted with low confidence. The cavity may be real but its precise shape and volume are uncertain; treat the druggability score as indicative rather than quantitative. Overlaps flagged low-confidence region(s): A:130-150 (mean 43.3, &lt;50); A:122-159 (mean 51.0, &lt;70).
+  </p>
+
+  <div class="callout callout-warn">
+    <ul class="plain" style="margin-bottom:0">
+<li>Pockets were detected with Pocketscribe&#39;s built-in geometric fallback backend, not with fpocket. The scores in the &#39;druggability&#39; column are a transparent volume/buriedness/hydrophobicity heuristic, NOT fpocket&#39;s validated druggability score, and the two are not comparable. Install fpocket and re-run before drawing any scientific conclusion.</li>    </ul>
+  </div>
+</section>
+
+
+<section id="images">
+  <h2>Pocket locations</h2>
+  <p class="section-note">
+    C&alpha; trace of the model, oriented along its two principal axes. Lining residues
+    are drawn as filled circles coloured by their own prediction confidence, using the
+    same bands as the plot above, so a pocket sitting in poorly-predicted structure is
+    visible at a glance.
+  </p>
+  <div class="pocket-gallery">
+    <figure>
+      <svg class="viz structure" role="img" viewBox="0 0 420 320" width="100%" preserveAspectRatio="xMidYMid meet" aria-label="C-alpha trace of the model with pocket 1 highlighted; 83 lining residues are drawn as filled circles coloured by prediction confidence."><rect x="0" y="0" width="420" height="320" fill="#fcfcfb"/><line x1="152.4" y1="285.3" x2="173.8" y2="273.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="173.8" y1="273.0" x2="187.9" y2="261.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="156.4" y1="237.3" x2="184.4" y2="225.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="153.1" y1="201.6" x2="166.9" y2="189.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="166.9" y1="189.2" x2="188.5" y2="177.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="152.7" y1="153.5" x2="179.0" y2="141.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="179.0" y1="141.3" x2="184.0" y2="129.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="155.8" y1="117.7" x2="160.4" y2="105.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="160.4" y1="105.4" x2="186.9" y2="93.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="151.1" y1="69.7" x2="172.5" y2="57.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="172.5" y1="57.4" x2="186.6" y2="45.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="25.6" y1="262.1" x2="51.9" y2="249.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="51.9" y1="249.9" x2="56.9" y2="238.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="28.7" y1="226.3" x2="33.3" y2="214.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="33.3" y1="214.0" x2="59.7" y2="202.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="24.0" y1="178.3" x2="45.4" y2="166.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="45.4" y1="166.0" x2="59.5" y2="154.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="27.9" y1="130.3" x2="56.0" y2="118.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="24.6" y1="94.5" x2="38.5" y2="82.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="38.5" y1="82.2" x2="60.1" y2="70.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="24.3" y1="46.5" x2="50.6" y2="34.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="50.6" y1="34.2" x2="52.1" y2="34.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="52.1" y1="34.1" x2="57.2" y2="33.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="57.2" y1="33.9" x2="68.1" y2="33.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="68.1" y1="33.8" x2="84.8" y2="33.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="84.8" y1="33.7" x2="105.1" y2="33.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="105.1" y1="33.6" x2="87.0" y2="45.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="87.0" y1="45.5" x2="111.4" y2="57.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="111.4" y1="57.1" x2="121.2" y2="69.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="121.2" y1="69.3" x2="93.6" y2="81.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="93.6" y1="81.5" x2="93.5" y2="93.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="93.5" y1="93.2" x2="121.3" y2="105.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="121.3" y1="105.1" x2="111.9" y2="117.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="111.9" y1="117.4" x2="87.5" y2="129.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="87.5" y1="129.4" x2="105.6" y2="141.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="105.6" y1="141.0" x2="123.9" y2="153.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="123.9" y1="153.1" x2="99.6" y2="165.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="99.6" y1="165.4" x2="89.9" y2="177.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="89.9" y1="177.2" x2="117.7" y2="188.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="117.7" y1="188.9" x2="117.9" y2="201.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="117.9" y1="201.2" x2="90.3" y2="213.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="90.3" y1="213.3" x2="99.8" y2="224.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="99.8" y1="224.9" x2="124.3" y2="236.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="124.3" y1="236.9" x2="106.4" y2="249.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="106.4" y1="249.2" x2="88.3" y2="261.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="88.3" y1="261.1" x2="112.7" y2="272.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="112.7" y1="272.8" x2="122.5" y2="285.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="122.5" y1="285.0" x2="156.9" y2="282.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="156.9" y1="282.1" x2="190.3" y2="279.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="190.3" y1="279.3" x2="222.0" y2="276.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="222.0" y1="276.5" x2="251.1" y2="273.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="251.1" y1="273.7" x2="277.5" y2="271.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="277.5" y1="271.0" x2="301.1" y2="268.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="301.1" y1="268.2" x2="322.2" y2="265.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="322.2" y1="265.5" x2="341.6" y2="262.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="341.6" y1="262.8" x2="359.9" y2="260.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="359.9" y1="260.1" x2="381.3" y2="247.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="381.3" y1="247.8" x2="395.4" y2="236.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="363.9" y1="212.1" x2="391.9" y2="199.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="360.6" y1="176.3" x2="374.4" y2="164.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="374.4" y1="164.0" x2="396.0" y2="152.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="360.2" y1="128.3" x2="386.5" y2="116.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="386.5" y1="116.0" x2="391.5" y2="104.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="363.3" y1="92.5" x2="367.9" y2="80.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="367.9" y1="80.2" x2="394.3" y2="68.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="249.0" y1="236.8" x2="275.4" y2="224.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="275.4" y1="224.5" x2="280.3" y2="212.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="252.1" y1="201.0" x2="256.8" y2="188.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="256.8" y1="188.7" x2="283.2" y2="176.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="247.5" y1="153.0" x2="268.8" y2="140.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="268.8" y1="140.7" x2="283.0" y2="128.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="251.4" y1="104.9" x2="279.5" y2="92.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="248.1" y1="69.2" x2="262.0" y2="56.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="262.0" y1="56.9" x2="263.4" y2="56.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="263.4" y1="56.7" x2="268.9" y2="56.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="268.9" y1="56.6" x2="280.7" y2="56.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="280.7" y1="56.5" x2="298.8" y2="56.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="298.8" y1="56.4" x2="320.9" y2="56.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="320.9" y1="56.3" x2="302.8" y2="68.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="302.8" y1="68.2" x2="327.2" y2="79.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="327.2" y1="79.9" x2="337.0" y2="92.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="337.0" y1="92.1" x2="309.4" y2="104.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="309.4" y1="104.3" x2="309.3" y2="115.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="309.3" y1="115.9" x2="337.1" y2="127.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="337.1" y1="127.8" x2="327.7" y2="140.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="327.7" y1="140.1" x2="303.4" y2="152.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="303.4" y1="152.1" x2="321.4" y2="163.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="321.4" y1="163.7" x2="339.7" y2="175.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="339.7" y1="175.8" x2="315.5" y2="188.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="315.5" y1="188.1" x2="305.8" y2="199.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="305.8" y1="199.9" x2="333.5" y2="211.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="333.5" y1="211.6" x2="333.7" y2="223.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="333.7" y1="223.9" x2="306.1" y2="236.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="306.1" y1="236.0" x2="315.6" y2="247.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="315.6" y1="247.6" x2="340.2" y2="259.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="187.9" y1="261.2" x2="161.5" y2="249.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="161.5" y1="249.5" x2="156.4" y2="237.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="184.4" y1="225.1" x2="179.6" y2="213.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="179.6" y1="213.5" x2="153.1" y2="201.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="188.5" y1="177.3" x2="167.0" y2="165.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="167.0" y1="165.7" x2="152.7" y2="153.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="184.0" y1="129.5" x2="155.8" y2="117.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="186.9" y1="93.4" x2="172.8" y2="81.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="172.8" y1="81.8" x2="151.1" y2="69.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="186.6" y1="45.6" x2="160.2" y2="33.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="160.2" y1="33.9" x2="158.7" y2="34.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="158.7" y1="34.1" x2="153.6" y2="34.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="153.6" y1="34.2" x2="142.7" y2="34.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="142.7" y1="34.4" x2="126.0" y2="34.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="126.0" y1="34.5" x2="105.6" y2="34.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="105.6" y1="34.6" x2="123.9" y2="46.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="123.9" y1="46.6" x2="99.7" y2="58.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="99.7" y1="58.9" x2="90.0" y2="70.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="90.0" y1="70.7" x2="117.7" y2="82.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="117.7" y1="82.4" x2="118.0" y2="94.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="118.0" y1="94.7" x2="90.3" y2="106.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="90.3" y1="106.8" x2="99.9" y2="118.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="99.9" y1="118.5" x2="124.4" y2="130.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="124.4" y1="130.4" x2="106.5" y2="142.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="106.5" y1="142.7" x2="88.4" y2="154.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="88.4" y1="154.6" x2="112.7" y2="166.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="112.7" y1="166.3" x2="122.6" y2="178.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="122.6" y1="178.5" x2="94.9" y2="190.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="94.9" y1="190.7" x2="94.9" y2="202.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="94.9" y1="202.4" x2="122.7" y2="214.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="122.7" y1="214.2" x2="113.3" y2="226.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="113.3" y1="226.5" x2="88.9" y2="238.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="88.9" y1="238.5" x2="106.9" y2="250.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="106.9" y1="250.2" x2="125.2" y2="262.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="125.2" y1="262.3" x2="101.0" y2="274.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="101.0" y1="274.5" x2="91.3" y2="286.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="91.3" y1="286.3" x2="74.9" y2="286.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="74.9" y1="286.4" x2="62.4" y2="286.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="62.4" y1="286.4" x2="56.4" y2="286.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="56.4" y1="286.3" x2="56.9" y2="286.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="56.9" y1="286.1" x2="61.4" y2="285.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="61.4" y1="285.9" x2="39.9" y2="274.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="39.9" y1="274.2" x2="25.6" y2="262.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="56.9" y1="238.1" x2="28.7" y2="226.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="59.7" y1="202.0" x2="45.7" y2="190.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="45.7" y1="190.4" x2="24.0" y2="178.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="59.5" y1="154.2" x2="33.1" y2="142.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="33.1" y1="142.5" x2="27.9" y2="130.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="56.0" y1="118.1" x2="51.2" y2="106.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="51.2" y1="106.4" x2="24.6" y2="94.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="60.1" y1="70.3" x2="38.6" y2="58.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="38.6" y1="58.6" x2="24.3" y2="46.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="395.4" y1="236.0" x2="369.0" y2="224.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="369.0" y1="224.3" x2="363.9" y2="212.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="391.9" y1="199.9" x2="387.1" y2="188.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="387.1" y1="188.2" x2="360.6" y2="176.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="396.0" y1="152.1" x2="374.5" y2="140.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="374.5" y1="140.4" x2="360.2" y2="128.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="391.5" y1="104.3" x2="363.3" y2="92.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="394.3" y1="68.2" x2="380.3" y2="56.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="380.3" y1="56.5" x2="378.9" y2="56.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="378.9" y1="56.7" x2="373.4" y2="56.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="373.4" y1="56.8" x2="361.6" y2="56.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="361.6" y1="56.9" x2="343.5" y2="57.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="343.5" y1="57.0" x2="321.4" y2="57.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="321.4" y1="57.1" x2="339.6" y2="69.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="339.6" y1="69.2" x2="315.4" y2="81.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="315.4" y1="81.5" x2="305.7" y2="93.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="305.7" y1="93.2" x2="333.5" y2="105.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="333.5" y1="105.0" x2="333.7" y2="117.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="333.7" y1="117.3" x2="306.0" y2="129.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="306.0" y1="129.4" x2="315.6" y2="141.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="315.6" y1="141.0" x2="340.1" y2="153.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="340.1" y1="153.0" x2="322.2" y2="165.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="322.2" y1="165.3" x2="304.1" y2="177.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="304.1" y1="177.2" x2="328.4" y2="188.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="328.4" y1="188.8" x2="338.3" y2="201.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="338.3" y1="201.0" x2="310.7" y2="213.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="310.7" y1="213.2" x2="310.6" y2="224.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="310.6" y1="224.9" x2="338.4" y2="236.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="338.4" y1="236.8" x2="329.0" y2="249.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="329.0" y1="249.1" x2="304.6" y2="261.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="304.6" y1="261.1" x2="291.1" y2="261.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="291.1" y1="261.1" x2="281.2" y2="261.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="281.2" y1="261.1" x2="277.2" y2="261.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="277.2" y1="261.0" x2="279.2" y2="260.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="279.2" y1="260.8" x2="284.9" y2="260.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="284.9" y1="260.6" x2="263.3" y2="248.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="263.3" y1="248.9" x2="249.0" y2="236.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="280.3" y1="212.8" x2="252.1" y2="201.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="283.2" y1="176.7" x2="269.2" y2="165.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="269.2" y1="165.0" x2="247.5" y2="153.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="283.0" y1="128.9" x2="256.5" y2="117.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="256.5" y1="117.2" x2="251.4" y2="104.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="279.5" y1="92.8" x2="274.7" y2="81.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="274.7" y1="81.1" x2="248.1" y2="69.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><circle cx="152.4" cy="285.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA1 - pLDDT 93.0</title></circle><circle cx="173.8" cy="273.0" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU2 - pLDDT 94.5</title></circle><circle cx="161.5" cy="249.5" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ILE4 - pLDDT 88.1</title></circle><circle cx="156.4" cy="237.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:PHE5 - pLDDT 94.7</title></circle><circle cx="179.6" cy="213.5" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY7 - pLDDT 90.4</title></circle><circle cx="153.1" cy="201.6" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA8 - pLDDT 93.7</title></circle><circle cx="166.9" cy="189.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL9 - pLDDT 93.1</title></circle><circle cx="167.0" cy="165.7" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:THR11 - pLDDT 92.1</title></circle><circle cx="152.7" cy="153.5" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA12 - pLDDT 93.6</title></circle><circle cx="179.0" cy="141.3" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ILE13 - pLDDT 89.8</title></circle><circle cx="184.0" cy="129.5" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:PHE14 - pLDDT 91.5</title></circle><circle cx="155.8" cy="117.7" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL15 - pLDDT 90.5</title></circle><circle cx="160.4" cy="105.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY16 - pLDDT 93.8</title></circle><circle cx="172.8" cy="81.8" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA18 - pLDDT 91.1</title></circle><circle cx="151.1" cy="69.7" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:SER19 - pLDDT 89.7</title></circle><circle cx="172.5" cy="57.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL20 - pLDDT 91.2</title></circle><circle cx="186.6" cy="45.6" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU21 - pLDDT 92.0</title></circle><circle cx="160.2" cy="33.9" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA22 - pLDDT 91.2</title></circle><circle cx="158.7" cy="34.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:MET23 - pLDDT 95.9</title></circle><circle cx="153.6" cy="34.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:PHE24 - pLDDT 95.0</title></circle><circle cx="142.7" cy="34.4" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:GLY25 - pLDDT 83.9</title></circle><circle cx="126.0" cy="34.5" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:THR26 - pLDDT 86.3</title></circle><circle cx="105.6" cy="34.6" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL27 - pLDDT 91.5</title></circle><circle cx="123.9" cy="46.6" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU28 - pLDDT 90.7</title></circle><circle cx="90.0" cy="70.7" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA30 - pLDDT 92.7</title></circle><circle cx="117.7" cy="82.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL31 - pLDDT 98.0</title></circle><circle cx="118.0" cy="94.7" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:PHE32 - pLDDT 88.7</title></circle><circle cx="90.3" cy="106.8" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY33 - pLDDT 90.9</title></circle><circle cx="99.9" cy="118.5" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:SER34 - pLDDT 98.0</title></circle><circle cx="124.4" cy="130.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU35 - pLDDT 93.9</title></circle><circle cx="88.4" cy="154.6" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:THR37 - pLDDT 90.5</title></circle><circle cx="112.7" cy="166.3" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ALA38 - pLDDT 87.1</title></circle><circle cx="94.9" cy="190.7" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU40 - pLDDT 92.3</title></circle><circle cx="94.9" cy="202.4" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ILE41 - pLDDT 88.3</title></circle><circle cx="122.7" cy="214.2" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:VAL42 - pLDDT 90.0</title></circle><circle cx="88.9" cy="238.5" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:GLY44 - pLDDT 89.2</title></circle><circle cx="106.9" cy="250.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA45 - pLDDT 91.7</title></circle><circle cx="125.2" cy="262.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA46 - pLDDT 92.3</title></circle><circle cx="101.0" cy="274.5" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU47 - pLDDT 92.1</title></circle><circle cx="91.3" cy="286.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL48 - pLDDT 90.5</title></circle><circle cx="74.9" cy="286.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ILE49 - pLDDT 93.8</title></circle><circle cx="62.4" cy="286.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:PHE50 - pLDDT 94.7</title></circle><circle cx="56.4" cy="286.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU51 - pLDDT 93.0</title></circle><circle cx="56.9" cy="286.1" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:GLY52 - pLDDT 89.5</title></circle><circle cx="61.4" cy="285.9" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA53 - pLDDT 94.2</title></circle><circle cx="39.9" cy="274.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL54 - pLDDT 90.5</title></circle><circle cx="51.9" cy="249.9" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:THR56 - pLDDT 88.8</title></circle><circle cx="56.9" cy="238.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA57 - pLDDT 94.7</title></circle><circle cx="28.7" cy="226.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ILE58 - pLDDT 91.9</title></circle><circle cx="33.3" cy="214.0" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:PHE59 - pLDDT 88.2</title></circle><circle cx="59.7" cy="202.0" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL60 - pLDDT 91.1</title></circle><circle cx="45.7" cy="190.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY61 - pLDDT 92.2</title></circle><circle cx="45.4" cy="166.0" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ALA63 - pLDDT 89.0</title></circle><circle cx="59.5" cy="154.2" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:SER64 - pLDDT 88.7</title></circle><circle cx="33.1" cy="142.5" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL65 - pLDDT 92.6</title></circle><circle cx="27.9" cy="130.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU66 - pLDDT 90.6</title></circle><circle cx="56.0" cy="118.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA67 - pLDDT 92.7</title></circle><circle cx="51.2" cy="106.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:MET68 - pLDDT 94.3</title></circle><circle cx="38.5" cy="82.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY70 - pLDDT 92.8</title></circle><circle cx="60.1" cy="70.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:THR71 - pLDDT 95.7</title></circle><circle cx="38.6" cy="58.6" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL72 - pLDDT 91.1</title></circle><circle cx="50.6" cy="34.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ILE74 - pLDDT 94.3</title></circle><circle cx="52.1" cy="34.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA75 - pLDDT 92.8</title></circle><circle cx="57.2" cy="33.9" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL76 - pLDDT 94.7</title></circle><circle cx="68.1" cy="33.8" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:PHE77 - pLDDT 91.0</title></circle><circle cx="84.8" cy="33.7" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:GLY78 - pLDDT 87.5</title></circle><circle cx="105.1" cy="33.6" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:SER79 - pLDDT 91.7</title></circle><circle cx="87.0" cy="45.5" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU80 - pLDDT 90.7</title></circle><circle cx="121.2" cy="69.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:THR82 - pLDDT 92.6</title></circle><circle cx="93.6" cy="81.5" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ALA83 - pLDDT 87.1</title></circle><circle cx="121.3" cy="105.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU85 - pLDDT 94.7</title></circle><circle cx="111.9" cy="117.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ILE86 - pLDDT 94.0</title></circle><circle cx="87.5" cy="129.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL87 - pLDDT 90.1</title></circle><circle cx="123.9" cy="153.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY89 - pLDDT 93.3</title></circle><circle cx="99.6" cy="165.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA90 - pLDDT 93.4</title></circle><circle cx="89.9" cy="177.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA91 - pLDDT 94.6</title></circle><circle cx="117.9" cy="201.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL93 - pLDDT 91.7</title></circle><circle cx="90.3" cy="213.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ILE94 - pLDDT 91.2</title></circle><circle cx="124.3" cy="236.9" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:LEU96 - pLDDT 85.2</title></circle><circle cx="106.4" cy="249.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY97 - pLDDT 91.6</title></circle><circle cx="88.3" cy="261.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA98 - pLDDT 92.1</title></circle><circle cx="122.5" cy="285.0" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU100 - pLDDT 93.0</title></circle><circle cx="156.9" cy="282.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:THR101 - pLDDT 90.0</title></circle><circle cx="104.8" cy="161.5" r="11" fill="none" stroke="#52514e" stroke-width="1.5" stroke-dasharray="3 2"/><text x="12" y="310" font-size="11" fill="#898781">Pocket 1 - 83 lining residues, C-alpha trace, orthographic projection</text></svg>
+      <figcaption>
+        <strong>Pocket 1</strong> &mdash;
+        volume 895 &#8491;&sup3;,
+        score 0.850,
+        caveat <em>none</em>.
+      </figcaption>
+    </figure>
+    <figure>
+      <svg class="viz structure" role="img" viewBox="0 0 420 320" width="100%" preserveAspectRatio="xMidYMid meet" aria-label="C-alpha trace of the model with pocket 2 highlighted; 56 lining residues are drawn as filled circles coloured by prediction confidence."><rect x="0" y="0" width="420" height="320" fill="#fcfcfb"/><line x1="152.4" y1="285.3" x2="173.8" y2="273.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="173.8" y1="273.0" x2="187.9" y2="261.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="156.4" y1="237.3" x2="184.4" y2="225.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="153.1" y1="201.6" x2="166.9" y2="189.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="166.9" y1="189.2" x2="188.5" y2="177.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="152.7" y1="153.5" x2="179.0" y2="141.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="179.0" y1="141.3" x2="184.0" y2="129.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="155.8" y1="117.7" x2="160.4" y2="105.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="160.4" y1="105.4" x2="186.9" y2="93.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="151.1" y1="69.7" x2="172.5" y2="57.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="172.5" y1="57.4" x2="186.6" y2="45.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="25.6" y1="262.1" x2="51.9" y2="249.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="51.9" y1="249.9" x2="56.9" y2="238.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="28.7" y1="226.3" x2="33.3" y2="214.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="33.3" y1="214.0" x2="59.7" y2="202.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="24.0" y1="178.3" x2="45.4" y2="166.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="45.4" y1="166.0" x2="59.5" y2="154.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="27.9" y1="130.3" x2="56.0" y2="118.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="24.6" y1="94.5" x2="38.5" y2="82.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="38.5" y1="82.2" x2="60.1" y2="70.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="24.3" y1="46.5" x2="50.6" y2="34.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="50.6" y1="34.2" x2="52.1" y2="34.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="52.1" y1="34.1" x2="57.2" y2="33.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="57.2" y1="33.9" x2="68.1" y2="33.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="68.1" y1="33.8" x2="84.8" y2="33.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="84.8" y1="33.7" x2="105.1" y2="33.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="105.1" y1="33.6" x2="87.0" y2="45.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="87.0" y1="45.5" x2="111.4" y2="57.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="111.4" y1="57.1" x2="121.2" y2="69.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="121.2" y1="69.3" x2="93.6" y2="81.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="93.6" y1="81.5" x2="93.5" y2="93.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="93.5" y1="93.2" x2="121.3" y2="105.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="121.3" y1="105.1" x2="111.9" y2="117.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="111.9" y1="117.4" x2="87.5" y2="129.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="87.5" y1="129.4" x2="105.6" y2="141.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="105.6" y1="141.0" x2="123.9" y2="153.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="123.9" y1="153.1" x2="99.6" y2="165.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="99.6" y1="165.4" x2="89.9" y2="177.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="89.9" y1="177.2" x2="117.7" y2="188.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="117.7" y1="188.9" x2="117.9" y2="201.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="117.9" y1="201.2" x2="90.3" y2="213.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="90.3" y1="213.3" x2="99.8" y2="224.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="99.8" y1="224.9" x2="124.3" y2="236.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="124.3" y1="236.9" x2="106.4" y2="249.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="106.4" y1="249.2" x2="88.3" y2="261.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="88.3" y1="261.1" x2="112.7" y2="272.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="112.7" y1="272.8" x2="122.5" y2="285.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="122.5" y1="285.0" x2="156.9" y2="282.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="156.9" y1="282.1" x2="190.3" y2="279.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="190.3" y1="279.3" x2="222.0" y2="276.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="222.0" y1="276.5" x2="251.1" y2="273.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="251.1" y1="273.7" x2="277.5" y2="271.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="277.5" y1="271.0" x2="301.1" y2="268.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="301.1" y1="268.2" x2="322.2" y2="265.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="322.2" y1="265.5" x2="341.6" y2="262.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="341.6" y1="262.8" x2="359.9" y2="260.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="359.9" y1="260.1" x2="381.3" y2="247.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="381.3" y1="247.8" x2="395.4" y2="236.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="363.9" y1="212.1" x2="391.9" y2="199.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="360.6" y1="176.3" x2="374.4" y2="164.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="374.4" y1="164.0" x2="396.0" y2="152.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="360.2" y1="128.3" x2="386.5" y2="116.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="386.5" y1="116.0" x2="391.5" y2="104.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="363.3" y1="92.5" x2="367.9" y2="80.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="367.9" y1="80.2" x2="394.3" y2="68.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="249.0" y1="236.8" x2="275.4" y2="224.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="275.4" y1="224.5" x2="280.3" y2="212.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="252.1" y1="201.0" x2="256.8" y2="188.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="256.8" y1="188.7" x2="283.2" y2="176.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="247.5" y1="153.0" x2="268.8" y2="140.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="268.8" y1="140.7" x2="283.0" y2="128.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="251.4" y1="104.9" x2="279.5" y2="92.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="248.1" y1="69.2" x2="262.0" y2="56.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="262.0" y1="56.9" x2="263.4" y2="56.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="263.4" y1="56.7" x2="268.9" y2="56.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="268.9" y1="56.6" x2="280.7" y2="56.5" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="280.7" y1="56.5" x2="298.8" y2="56.4" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="298.8" y1="56.4" x2="320.9" y2="56.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="320.9" y1="56.3" x2="302.8" y2="68.2" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="302.8" y1="68.2" x2="327.2" y2="79.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="327.2" y1="79.9" x2="337.0" y2="92.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="337.0" y1="92.1" x2="309.4" y2="104.3" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="309.4" y1="104.3" x2="309.3" y2="115.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="309.3" y1="115.9" x2="337.1" y2="127.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="337.1" y1="127.8" x2="327.7" y2="140.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="327.7" y1="140.1" x2="303.4" y2="152.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="303.4" y1="152.1" x2="321.4" y2="163.7" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="321.4" y1="163.7" x2="339.7" y2="175.8" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="339.7" y1="175.8" x2="315.5" y2="188.1" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="315.5" y1="188.1" x2="305.8" y2="199.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="305.8" y1="199.9" x2="333.5" y2="211.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="333.5" y1="211.6" x2="333.7" y2="223.9" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="333.7" y1="223.9" x2="306.1" y2="236.0" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="306.1" y1="236.0" x2="315.6" y2="247.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="315.6" y1="247.6" x2="340.2" y2="259.6" stroke-linecap="round" stroke-width="2" stroke="#dedcd3"/><line x1="187.9" y1="261.2" x2="161.5" y2="249.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="161.5" y1="249.5" x2="156.4" y2="237.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="184.4" y1="225.1" x2="179.6" y2="213.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="179.6" y1="213.5" x2="153.1" y2="201.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="188.5" y1="177.3" x2="167.0" y2="165.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="167.0" y1="165.7" x2="152.7" y2="153.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="184.0" y1="129.5" x2="155.8" y2="117.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="186.9" y1="93.4" x2="172.8" y2="81.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="172.8" y1="81.8" x2="151.1" y2="69.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="186.6" y1="45.6" x2="160.2" y2="33.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="160.2" y1="33.9" x2="158.7" y2="34.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="158.7" y1="34.1" x2="153.6" y2="34.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="153.6" y1="34.2" x2="142.7" y2="34.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="142.7" y1="34.4" x2="126.0" y2="34.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="126.0" y1="34.5" x2="105.6" y2="34.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="105.6" y1="34.6" x2="123.9" y2="46.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="123.9" y1="46.6" x2="99.7" y2="58.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="99.7" y1="58.9" x2="90.0" y2="70.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="90.0" y1="70.7" x2="117.7" y2="82.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="117.7" y1="82.4" x2="118.0" y2="94.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="118.0" y1="94.7" x2="90.3" y2="106.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="90.3" y1="106.8" x2="99.9" y2="118.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="99.9" y1="118.5" x2="124.4" y2="130.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="124.4" y1="130.4" x2="106.5" y2="142.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="106.5" y1="142.7" x2="88.4" y2="154.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="88.4" y1="154.6" x2="112.7" y2="166.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="112.7" y1="166.3" x2="122.6" y2="178.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="122.6" y1="178.5" x2="94.9" y2="190.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="94.9" y1="190.7" x2="94.9" y2="202.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="94.9" y1="202.4" x2="122.7" y2="214.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="122.7" y1="214.2" x2="113.3" y2="226.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="113.3" y1="226.5" x2="88.9" y2="238.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="88.9" y1="238.5" x2="106.9" y2="250.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="106.9" y1="250.2" x2="125.2" y2="262.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="125.2" y1="262.3" x2="101.0" y2="274.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="101.0" y1="274.5" x2="91.3" y2="286.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="91.3" y1="286.3" x2="74.9" y2="286.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="74.9" y1="286.4" x2="62.4" y2="286.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="62.4" y1="286.4" x2="56.4" y2="286.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="56.4" y1="286.3" x2="56.9" y2="286.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="56.9" y1="286.1" x2="61.4" y2="285.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="61.4" y1="285.9" x2="39.9" y2="274.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="39.9" y1="274.2" x2="25.6" y2="262.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="56.9" y1="238.1" x2="28.7" y2="226.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="59.7" y1="202.0" x2="45.7" y2="190.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="45.7" y1="190.4" x2="24.0" y2="178.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="59.5" y1="154.2" x2="33.1" y2="142.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="33.1" y1="142.5" x2="27.9" y2="130.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="56.0" y1="118.1" x2="51.2" y2="106.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="51.2" y1="106.4" x2="24.6" y2="94.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="60.1" y1="70.3" x2="38.6" y2="58.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="38.6" y1="58.6" x2="24.3" y2="46.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="395.4" y1="236.0" x2="369.0" y2="224.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="369.0" y1="224.3" x2="363.9" y2="212.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="391.9" y1="199.9" x2="387.1" y2="188.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="387.1" y1="188.2" x2="360.6" y2="176.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="396.0" y1="152.1" x2="374.5" y2="140.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="374.5" y1="140.4" x2="360.2" y2="128.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="391.5" y1="104.3" x2="363.3" y2="92.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="394.3" y1="68.2" x2="380.3" y2="56.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="380.3" y1="56.5" x2="378.9" y2="56.7" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="378.9" y1="56.7" x2="373.4" y2="56.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="373.4" y1="56.8" x2="361.6" y2="56.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="361.6" y1="56.9" x2="343.5" y2="57.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="343.5" y1="57.0" x2="321.4" y2="57.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="321.4" y1="57.1" x2="339.6" y2="69.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="339.6" y1="69.2" x2="315.4" y2="81.5" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="315.4" y1="81.5" x2="305.7" y2="93.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="305.7" y1="93.2" x2="333.5" y2="105.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="333.5" y1="105.0" x2="333.7" y2="117.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="333.7" y1="117.3" x2="306.0" y2="129.4" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="306.0" y1="129.4" x2="315.6" y2="141.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="315.6" y1="141.0" x2="340.1" y2="153.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="340.1" y1="153.0" x2="322.2" y2="165.3" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="322.2" y1="165.3" x2="304.1" y2="177.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="304.1" y1="177.2" x2="328.4" y2="188.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="328.4" y1="188.8" x2="338.3" y2="201.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="338.3" y1="201.0" x2="310.7" y2="213.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="310.7" y1="213.2" x2="310.6" y2="224.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="310.6" y1="224.9" x2="338.4" y2="236.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="338.4" y1="236.8" x2="329.0" y2="249.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="329.0" y1="249.1" x2="304.6" y2="261.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="304.6" y1="261.1" x2="291.1" y2="261.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="291.1" y1="261.1" x2="281.2" y2="261.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="281.2" y1="261.1" x2="277.2" y2="261.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="277.2" y1="261.0" x2="279.2" y2="260.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="279.2" y1="260.8" x2="284.9" y2="260.6" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="284.9" y1="260.6" x2="263.3" y2="248.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="263.3" y1="248.9" x2="249.0" y2="236.8" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="280.3" y1="212.8" x2="252.1" y2="201.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="283.2" y1="176.7" x2="269.2" y2="165.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="269.2" y1="165.0" x2="247.5" y2="153.0" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="283.0" y1="128.9" x2="256.5" y2="117.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="256.5" y1="117.2" x2="251.4" y2="104.9" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="279.5" y1="92.8" x2="274.7" y2="81.1" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><line x1="274.7" y1="81.1" x2="248.1" y2="69.2" stroke-linecap="round" stroke-width="2" stroke="#c3c2b7"/><circle cx="277.5" cy="271.0" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL105 - pLDDT 95.7</title></circle><circle cx="301.1" cy="268.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY106 - pLDDT 93.2</title></circle><circle cx="322.2" cy="265.5" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:LEU107 - pLDDT 89.4</title></circle><circle cx="341.6" cy="262.8" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ALA108 - pLDDT 87.5</title></circle><circle cx="359.9" cy="260.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:SER109 - pLDDT 97.3</title></circle><circle cx="369.0" cy="224.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA112 - pLDDT 92.4</title></circle><circle cx="363.9" cy="212.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:MET113 - pLDDT 91.4</title></circle><circle cx="360.6" cy="176.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:THR116 - pLDDT 92.0</title></circle><circle cx="374.4" cy="164.0" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:VAL117 - pLDDT 86.5</title></circle><circle cx="374.5" cy="140.4" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ILE119 - pLDDT 79.0</title></circle><circle cx="360.2" cy="128.3" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ALA120 - pLDDT 80.8</title></circle><circle cx="363.3" cy="92.5" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:GLY123 - pLDDT 62.0</title></circle><circle cx="367.9" cy="80.2" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:SER124 - pLDDT 68.3</title></circle><circle cx="380.3" cy="56.5" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:VAL126 - pLDDT 57.9</title></circle><circle cx="378.9" cy="56.7" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:THR127 - pLDDT 54.5</title></circle><circle cx="373.4" cy="56.8" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:ALA128 - pLDDT 57.6</title></circle><circle cx="361.6" cy="56.9" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:MET129 - pLDDT 51.0</title></circle><circle cx="343.5" cy="57.0" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:LEU130 - pLDDT 49.8</title></circle><circle cx="321.4" cy="57.1" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:ILE131 - pLDDT 48.3</title></circle><circle cx="339.6" cy="69.2" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:VAL132 - pLDDT 49.1</title></circle><circle cx="305.7" cy="93.2" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:GLY134 - pLDDT 45.3</title></circle><circle cx="333.5" cy="105.0" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:ALA135 - pLDDT 42.7</title></circle><circle cx="315.6" cy="141.0" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:VAL138 - pLDDT 37.8</title></circle><circle cx="340.1" cy="153.0" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:ILE139 - pLDDT 40.3</title></circle><circle cx="304.1" cy="177.2" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:LEU141 - pLDDT 36.8</title></circle><circle cx="328.4" cy="188.8" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:GLY142 - pLDDT 44.6</title></circle><circle cx="310.6" cy="224.9" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:LEU145 - pLDDT 43.7</title></circle><circle cx="338.4" cy="236.8" r="4.5" fill="#B0431A" stroke="#fcfcfb" stroke-width="2"><title>A:THR146 - pLDDT 41.9</title></circle><circle cx="277.2" cy="261.0" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:GLY151 - pLDDT 53.8</title></circle><circle cx="279.2" cy="260.8" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:LEU152 - pLDDT 51.7</title></circle><circle cx="284.9" cy="260.6" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:ALA153 - pLDDT 52.7</title></circle><circle cx="263.3" cy="248.9" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:SER154 - pLDDT 55.6</title></circle><circle cx="275.4" cy="224.5" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:LEU156 - pLDDT 68.5</title></circle><circle cx="280.3" cy="212.8" r="4.5" fill="#B8860B" stroke="#fcfcfb" stroke-width="2"><title>A:ALA157 - pLDDT 63.0</title></circle><circle cx="283.2" cy="176.7" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:GLY160 - pLDDT 75.6</title></circle><circle cx="269.2" cy="165.0" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:THR161 - pLDDT 81.5</title></circle><circle cx="268.8" cy="140.7" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:LEU163 - pLDDT 83.5</title></circle><circle cx="283.0" cy="128.9" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:ILE164 - pLDDT 89.4</title></circle><circle cx="279.5" cy="92.8" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:PHE167 - pLDDT 97.9</title></circle><circle cx="274.7" cy="81.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY168 - pLDDT 92.6</title></circle><circle cx="248.1" cy="69.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:SER169 - pLDDT 90.2</title></circle><circle cx="262.0" cy="56.9" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU170 - pLDDT 91.6</title></circle><circle cx="263.4" cy="56.7" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:VAL171 - pLDDT 91.8</title></circle><circle cx="268.9" cy="56.6" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:THR172 - pLDDT 92.3</title></circle><circle cx="280.7" cy="56.5" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ALA173 - pLDDT 91.9</title></circle><circle cx="298.8" cy="56.4" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:MET174 - pLDDT 92.5</title></circle><circle cx="320.9" cy="56.3" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:LEU175 - pLDDT 87.0</title></circle><circle cx="302.8" cy="68.2" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:ILE176 - pLDDT 94.5</title></circle><circle cx="337.0" cy="92.1" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:PHE178 - pLDDT 88.5</title></circle><circle cx="309.4" cy="104.3" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:GLY179 - pLDDT 93.9</title></circle><circle cx="327.7" cy="140.1" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU182 - pLDDT 92.5</title></circle><circle cx="303.4" cy="152.1" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:VAL183 - pLDDT 89.2</title></circle><circle cx="339.7" cy="175.8" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:PHE185 - pLDDT 94.6</title></circle><circle cx="315.5" cy="188.1" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:LEU186 - pLDDT 88.6</title></circle><circle cx="333.7" cy="223.9" r="4.5" fill="#4C93C8" stroke="#fcfcfb" stroke-width="2"><title>A:VAL189 - pLDDT 87.3</title></circle><circle cx="306.1" cy="236.0" r="4.5" fill="#0B4FBF" stroke="#fcfcfb" stroke-width="2"><title>A:LEU190 - pLDDT 92.5</title></circle><circle cx="320.3" cy="142.9" r="11" fill="none" stroke="#52514e" stroke-width="1.5" stroke-dasharray="3 2"/><text x="12" y="310" font-size="11" fill="#898781">Pocket 2 - 56 lining residues, C-alpha trace, orthographic projection</text></svg>
+      <figcaption>
+        <strong>Pocket 2</strong> &mdash;
+        volume 220 &#8491;&sup3;,
+        score 0.624,
+        caveat <em>moderate</em>.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+
+<section id="narrative">
+  <h2>Interpretation</h2>
+  <p class="empty">No ANTHROPIC_API_KEY in the environment, so the optional narrative section was skipped. Everything else in this report is produced by the deterministic, offline pipeline.</p>
+  <p class="section-note" style="margin-bottom:0">
+    This section is the only part of Pocketscribe that uses an external API, and it is
+    optional by design. Everything else in this report was produced offline by the
+    deterministic pipeline.
+  </p>
+</section>
+
+<section id="methods">
+  <h2>Methods and parameters</h2>
+  <p class="section-note">
+    Enough detail to reproduce this run, and to write a methods section that cites the
+    right software.
+  </p>
+
+  <h3>Pipeline</h3>
+  <dl class="params">
+    <dt>Pocketscribe</dt><dd>0.1.0</dd>
+    <dt>Run at</dt><dd>2026-09-25 17:38 UTC</dd>
+    <dt>Structure source</dt>
+    <dd>AlphaFold2 (Tier 1 - full support),
+        confidence read as pLDDT</dd>
+    <dt>Pocket detection</dt>
+    <dd>builtin builtin-1.0</dd>
+    <dt>pocket backend</dt><dd>builtin (requested: fpocket)</dd>
+    <dt>top pockets reported</dt><dd>3</dd>
+    <dt>consensus min identity</dt><dd>0.95</dd>
+    <dt>consensus centroid tolerance (A)</dt><dd>8.0</dd>
+    <dt>consensus min residue Jaccard</dt><dd>0.25</dd>
+    <dt>consensus confidence weighting</dt><dd>True</dd>
+    <dt>MD setup generated</dt><dd>False</dd>
+  </dl>
+
+  <h3>Confidence thresholds</h3>
+  <p>
+    Residues are banded at pLDDT 90, 70 and 50, following the conventional AlphaFold
+    interpretation. A contiguous run of 3 or more residues below a
+    threshold is reported as a low-confidence region. A pocket&rsquo;s caveat level is
+    escalated on either a low mean confidence across its lining residues or a
+    substantial minority of untrustworthy residues, because a binding site needs only a
+    few badly-placed lining residues to be geometrically wrong.
+  </p>
+
+  <h3>Built-in heuristic score (used in this run)</h3>
+  <p>
+    <code>0.40 &times; volume_term + 0.30 &times; buriedness_term + 0.30 &times; apolar_term</code>,
+    where <code>volume_term</code> is a logistic in pocket volume centred on 300 &#8491;&sup3;
+    with a 150 &#8491;&sup3; width, <code>buriedness_term</code> is the mean 7-direction
+    enclosure count rescaled to 0&ndash;1, and <code>apolar_term</code> is the fraction of
+    lining heavy atoms that are carbon, sulphur or selenium. The weights are a reasoned
+    ordering, not a fit to any benchmark, and the score carries no validation. It exists
+    so the pipeline can run without fpocket; it is not a druggability model.
+  </p>
+
+
+  <h3>Reporting</h3>
+  <p>
+    Figures are inline SVG generated in pure Python, so this report is a single file that
+    opens offline. The confidence palette was validated for lightness band, chroma,
+    colour-vision-deficiency separation and contrast against the figure surface; band
+    membership is additionally readable from vertical position and the labelled
+    thresholds, so no information is carried by colour alone.
+  </p>
+
+  <h3>Built on &mdash; cite these, not only Pocketscribe</h3>
+  <p class="section-note">
+    Pocketscribe is an integration layer. The science in this report was done by the
+    tools below, and a methods section should cite them directly.
+  </p>
+  <ul class="plain">
+    <li><strong>LIGSITE</strong> &mdash; Hendlich, M., Rippmann, F. &amp; Barnickel, G. LIGSITE: automatic and efficient detection of potential small molecule-binding sites in proteins. Journal of Molecular Graphics and Modelling 15, 359-363 (1997). doi:10.1016/S1093-3263(98)00002-3</li>
+    <li><strong>AlphaFold2</strong> &mdash; Jumper, J., Evans, R., Pritzel, A. et al. Highly accurate protein structure prediction with AlphaFold. Nature 596, 583-589 (2021). doi:10.1038/s41586-021-03819-2</li>
+    <li><strong>GROMACS</strong> &mdash; Abraham, M. J., Murtola, T., Schulz, R., Pall, S., Smith, J. C., Hess, B. &amp; Lindahl, E. GROMACS: High performance molecular simulations through multi-level parallelism from laptops to supercomputers. SoftwareX 1-2, 19-25 (2015). doi:10.1016/j.softx.2015.06.001</li>
+    <li><strong>CHARMM36m force field</strong> &mdash; Huang, J., Rauscher, S., Nawrocki, G., Ran, T., Feig, M., de Groot, B. L., Grubmuller, H. &amp; MacKerell, A. D. Jr. CHARMM36m: an improved force field for folded and intrinsically disordered proteins. Nature Methods 14, 71-73 (2017). doi:10.1038/nmeth.4067</li>
+    <li><strong>Biopython</strong> &mdash; Cock, P. J. A., Antao, T., Chang, J. T. et al. Biopython: freely available Python tools for computational molecular biology and bioinformatics. Bioinformatics 25, 1422-1423 (2009). doi:10.1093/bioinformatics/btp163</li>
+  </ul>
+</section>
+
+<section id="disclaimer">
+  <div class="disclaimer">
+    <h2>Scope and limitations</h2>
+    <p>
+      <strong>This analysis is for research use only.</strong> It is not a medical
+      device, not a diagnostic, and carries no clinical or therapeutic claim of any
+      kind. Nothing in it should be used to support a statement about treating any
+      disease in any patient.
+    </p>
+    <p>
+      <strong>This is a predicted structure, not an experimental one.</strong> Every
+      pocket described here exists in a computational model. Predicted models can place
+      side chains wrongly, close cavities that are open in reality, and open cavities
+      that are not. Apo predictions in particular often miss the conformational change
+      that accompanies ligand binding. The confidence caveats attached to each pocket
+      are the first thing to read, not a footnote.
+    </p>
+    <p>
+      <strong>Pocket detection and druggability scoring are heuristics.</strong> A high
+      score means a cavity has the geometry and chemistry that tend to accompany
+      ligandable sites. It is not evidence that any compound binds, and it says nothing
+      about selectivity, affinity or tractability.
+    </p>
+    <p>
+      <strong>No simulation was run.</strong> The MD section generates input files. Their
+      parameters are defaults chosen to be reasonable, not a protocol validated for this
+      system.
+    </p>
+    <p style="margin-bottom:0">
+      <strong>This tool is triage, not judgement.</strong> It exists to help a group
+      decide where to spend expert time, docking campaigns, simulation and experiments
+      &mdash; never to replace them, and never to replace a structural biologist reading
+      the structure.
+    </p>
+  </div>
+</section>
+
+<section id="cite">
+  <h2>How to cite</h2>
+  <p>
+    If this report contributed to published work, please cite Pocketscribe together with
+    the tools it wrapped &mdash; listed under &ldquo;Built on&rdquo; above. Citing the
+    wrapper without the underlying methods misattributes the science.
+  </p>
+  <div class="card">
+    <p class="mono" style="margin-bottom:0">
+      Adedeji, J. A. Pocketscribe: confidence-aware binding-pocket triage and molecular
+      dynamics setup for predicted protein structures (version 0.1.0).
+      Available at https://github.com/jonahnki/pocketscribe
+    </p>
+  </div>
+  <p style="margin-bottom:0">
+    A machine-readable <span class="mono">CITATION.cff</span> ships with the repository.
+  </p>
+</section>
+
+
+<footer>
+  <p>
+    Generated by Pocketscribe 0.1.0 on 2026-09-25 17:38 UTC.
+    Pocketscribe is open-source research software (MIT). It integrates existing,
+    separately-cited tools; it does not introduce a new pocket-detection algorithm,
+    druggability model or force field.
+  </p>
+</footer>
+
+</div>
+</body>
+</html>

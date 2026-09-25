@@ -20,29 +20,29 @@ PY="$VENV/bin/python"
 PIP="$VENV/bin/pip install -q --retries 5 --timeout 60"
 
 if [ "${1:-}" = "--fresh" ]; then
-    echo "-> rebuilding $VENV"
+    echo "→ rebuilding $VENV"
     rm -rf "$VENV"
 fi
 
 if [ ! -x "$PY" ]; then
-    echo "-> creating $VENV"
-    python3 -m venv "$VENV" || { echo "could not create a virtualenv"; exit 1; }
+    echo "→ creating $VENV"
+    python3 -m venv "$VENV" || { echo "✗ could not create a virtualenv"; exit 1; }
 fi
 
-echo "-> installing (continues if PyPI is unreachable)"
+echo "→ installing (skipped silently if PyPI is unreachable)"
 if ! ($PIP --upgrade pip && $PIP -e ".[dev]"); then
-    echo "WARNING: install failed - continuing with whatever is already in $VENV"
+    echo "⚠ install failed — continuing with whatever is already in $VENV"
 fi
 
 fail=0
 
 run() {
     local label="$1"; shift
-    printf '\n\033[1m-> %s\033[0m\n' "$label"
+    printf '\n\033[1m→ %s\033[0m\n' "$label"
     if "$@"; then
-        printf '\033[32mPASS %s\033[0m\n' "$label"
+        printf '\033[32m✓ %s\033[0m\n' "$label"
     else
-        printf '\033[31mFAIL %s\033[0m\n' "$label"
+        printf '\033[31m✗ %s\033[0m\n' "$label"
         fail=1
     fi
 }
@@ -52,7 +52,7 @@ run() {
 if [ -x "$VENV/bin/ruff" ]; then
     run "lint (ruff)" "$VENV/bin/ruff" check .
 else
-    echo "WARNING: ruff not installed - skipping lint (CI still checks it)"
+    echo "⚠ ruff not installed — skipping lint (CI still checks it)"
 fi
 
 run "tests" "$PY" -m pytest -q
@@ -63,20 +63,20 @@ run "demo (consensus)" "$VENV/bin/pocketscribe" demo --consensus \
 
 # The consensus report must distinguish the three evidence classes; a report that
 # silently lost that distinction would still be a valid HTML file.
-printf '\n\033[1m-> consensus report content\033[0m\n'
+printf '\n\033[1m→ consensus report content\033[0m\n'
 if grep -q "same-family-only" /tmp/pocketscribe_consensus.html \
    && grep -q "cross-family" /tmp/pocketscribe_consensus.html; then
-    printf '\033[32mPASS consensus report content\033[0m\n'
+    printf '\033[32m✓ consensus report content\033[0m\n'
 else
-    printf '\033[31mFAIL consensus report is missing the agreement classes\033[0m\n'
+    printf '\033[31m✗ consensus report is missing the agreement classes\033[0m\n'
     fail=1
 fi
 
 printf '\n'
 if [ "$fail" -eq 0 ]; then
-    printf '\033[32m==== all checks passed ====\033[0m\n'
+    printf '\033[32m════ all checks passed ════\033[0m\n'
     printf 'Reports: /tmp/pocketscribe_demo.html  /tmp/pocketscribe_consensus.html\n'
 else
-    printf '\033[31m==== something failed - see above ====\033[0m\n'
+    printf '\033[31m════ something failed — see above ════\033[0m\n'
 fi
 exit "$fail"

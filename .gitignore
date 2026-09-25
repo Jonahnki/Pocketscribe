@@ -23,17 +23,27 @@ htmlcov/
 # Pocketscribe output
 *.html
 !pocketscribe/report/templates/*.html
+# ...but the deployed site and its example reports are build products we ship.
+!site/*.html
+!site/demo/*.html
 md_setup/
 demo_report.html
 demo_consensus_report.html
 
-# fpocket leaves its output next to the input
+# fpocket writes its results to <stem>_out/ next to the input structure
 *_out/
+# ...but the checked-in fpocket output format sample is a test fixture, not a run result.
+# Without this the parser tests fail on a fresh clone with a missing-fixture error.
+!tests/fixtures/fpocket_out/
+
+# Release archives built from the working tree
+pocketscribe-*.tar.gz
+pocketscribe-*.zip
+
+# Vercel CLI
+.vercel/
 
 # Editors and OS
 .idea/
 .vscode/
 .DS_Store
-
-# Test fixture, not an fpocket run result (survives the *_out/ rule above)
-!tests/fixtures/fpocket_out/

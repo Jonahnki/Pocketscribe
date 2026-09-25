@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pocketscribe — binding-pocket triage for predicted protein structures</title>
+<meta name="description" content="Open-source tool that takes a predicted protein structure from AlphaFold2, OpenFold, ColabFold, ESMFold or Boltz and produces a confidence-caveated binding-pocket report with ready-to-run GROMACS inputs. Runs locally; nothing is uploaded. Research use only.">
+<meta property="og:title" content="Pocketscribe">
+<meta property="og:description" content="Confidence-aware binding-pocket triage and MD setup for predicted protein structures.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#129516;</text></svg>">
+<style>
+:root {
+  --page: #f9f9f7; --surface: #ffffff; --sunken: #f4f3ef;
+  --ink: #17170f; --ink-2: #52514e; --ink-3: #898781;
+  --rule: #e1e0d9; --rule-2: #c3c2b7; --accent: #0b4fbf;
+  --figure: #fcfcfb;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0d0d0d; --surface: #1a1a19; --sunken: #222220;
+    --ink: #f4f3ef; --ink-2: #c3c2b7; --ink-3: #898781;
+    --rule: #2c2c2a; --rule-2: #383835; --accent: #6ca4f0;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--page); color: var(--ink);
+  font-family: var(--sans); font-size: 16px; line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 940px; margin: 0 auto; padding: 0 16px; }
+
+/* ---------- nav ---------- */
+nav {
+  position: sticky; top: 0; z-index: 10;
+  background: color-mix(in srgb, var(--page) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+nav .wrap { display: flex; align-items: center; gap: 22px; height: 54px; }
+.brand {
+  font-family: var(--serif); font-weight: 600; font-size: 16px;
+  letter-spacing: .01em; margin-right: auto; text-decoration: none; color: var(--ink);
+}
+nav a { color: var(--ink-2); text-decoration: none; font-size: 14px; }
+nav a:hover { color: var(--accent); }
+@media (max-width: 620px) { .nav-hide { display: none; } }
+
+/* ---------- hero ---------- */
+header.hero { padding: 72px 0 8px; }
+h1 {
+  font-family: var(--serif); font-weight: 600;
+  font-size: clamp(32px, 6vw, 50px); line-height: 1.12;
+  margin: 0 0 18px; letter-spacing: -.015em; max-width: 19ch;
+}
+.lede { font-size: clamp(17px, 2.2vw, 19px); color: var(--ink-2); max-width: 62ch; margin: 0 0 26px; }
+.cta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+.btn {
+  display: inline-block; padding: 10px 18px; border-radius: 7px;
+  font-size: 14.5px; font-weight: 550; text-decoration: none;
+  border: 1px solid var(--rule-2); color: var(--ink); background: var(--surface);
+}
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-primary:hover { opacity: .9; color: #fff; }
+.chip {
+  display: inline-block; font-size: 12px; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--ink-3);
+  border: 1px solid var(--rule); border-radius: 100px; padding: 3px 11px;
+}
+
+/* ---------- sections ---------- */
+section { padding: 52px 0; border-top: 1px solid var(--rule); scroll-margin-top: 62px; }
+section:first-of-type { border-top: none; }
+h2 {
+  font-family: var(--serif); font-weight: 600;
+  font-size: clamp(22px, 3.4vw, 28px); margin: 0 0 6px; letter-spacing: -.01em;
+}
+.sub { color: var(--ink-2); margin: 0 0 26px; max-width: 64ch; }
+h3 { font-size: 15.5px; font-weight: 650; margin: 0 0 6px; }
+p { margin: 0 0 15px; }
+
+.grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.card {
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: 9px; padding: 17px 19px;
+}
+.card p { font-size: 14.5px; color: var(--ink-2); margin: 0; }
+
+figure { margin: 0 0 18px; background: var(--figure); border: 1px solid var(--rule); border-radius: 9px; padding: 16px; }
+figure svg { display: block; width: 100%; height: auto; }
+figcaption { font-size: 13.5px; color: #52514e; margin-top: 12px; }
+figcaption strong { color: #17170f; }
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.scroll { overflow-x: auto; }
+th, td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); border-bottom: 1px solid var(--rule-2); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: none; }
+.t1 { color: var(--accent); font-weight: 600; }
+.t2 { color: var(--ink-3); }
+
+pre {
+  background: var(--sunken); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 14px 16px; overflow-x: auto; font-family: var(--mono); font-size: 13px;
+  line-height: 1.6; margin: 0 0 14px;
+}
+code { font-family: var(--mono); font-size: .92em; }
+p code, li code, td code { background: var(--sunken); padding: 1px 5px; border-radius: 4px; }
+
+ul.plain { margin: 0 0 15px; padding-left: 20px; color: var(--ink-2); font-size: 15px; }
+ul.plain li { margin-bottom: 7px; }
+a { color: var(--accent); }
+
+.callout {
+  border: 1px solid var(--rule-2); border-left: 4px solid var(--accent);
+  border-radius: 7px; background: var(--sunken); padding: 16px 18px; font-size: 14.5px;
+}
+.callout p:last-child { margin-bottom: 0; }
+
+.refs { font-size: 13.5px; color: var(--ink-2); }
+.refs li { margin-bottom: 9px; }
+
+footer { border-top: 1px solid var(--rule); padding: 34px 0 60px; font-size: 13.5px; color: var(--ink-3); }
+footer p { margin-bottom: 10px; }
+footer strong { color: var(--ink-2); }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#">Pocketscribe</a>
+  <a class="nav-hide" href="#what">What it does</a>
+  <a class="nav-hide" href="#consensus">Consensus</a>
+  <a class="nav-hide" href="#sources">Sources</a>
+  <a href="#install">Install</a>
+  <a href="https://github.com/Jonahnki/Pocketscribe">GitHub</a>
+</div></nav>
+
+<div class="wrap">
+
+<header class="hero">
+  <span class="chip">Open source · Research use only</span>
+  <h1>Binding-pocket triage for predicted structures</h1>
+  <p class="lede">
+    Pocketscribe takes a protein structure predicted by AlphaFold2, OpenFold, ColabFold,
+    ESMFold or Boltz and produces one report: ranked binding pockets, each caveated by how
+    far the prediction actually supports it, plus ready-to-run molecular dynamics inputs.
+    It runs on your machine. Nothing is uploaded.
+  </p>
+  <div class="cta">
+    <a class="btn btn-primary" href="demo/report.html">See a real report</a>
+    <a class="btn" href="demo/consensus.html">Cross-model consensus example</a>
+    <a class="btn" href="https://github.com/Jonahnki/Pocketscribe">GitHub</a>
+  </div>
+</header>
+
+<section id="problem">
+  <h2>The gap it fills</h2>
+  <p class="sub">
+    A group with a predicted structure and no crystallographic data has to decide whether
+    any site on that model justifies a docking campaign, a simulation, or bench time. The
+    existing tools each solve one piece and leave you to join them up.
+  </p>
+  <div class="grid">
+    <div class="card">
+      <h3>Pocket finders ignore confidence</h3>
+      <p>fpocket, DoGSiteScorer and P2Rank were built for experimental structures. Handed
+      an AlphaFold model, they score a cavity formed by a disordered loop at pLDDT&nbsp;35
+      exactly as confidently as one in a well-resolved core.</p>
+    </div>
+    <div class="card">
+      <h3>Web tools want your structure</h3>
+      <p>For an unpublished target, uploading the model to a third party is often simply
+      not an option — which rules out most of the convenient routes.</p>
+    </div>
+    <div class="card">
+      <h3>Family profilers don't generalise</h3>
+      <p>Tools trained on kinases or GPCRs are sharp inside their family and quiet outside
+      it, which is exactly where a novel target sits.</p>
+    </div>
+    <div class="card">
+      <h3>Nothing reaches simulation</h3>
+      <p>After a promising pocket, the step to a running simulation still means assembling
+      a GROMACS setup by hand from tutorials — a reliable source of quiet errors.</p>
+    </div>
+  </div>
+</section>
+
+<section id="what">
+  <h2>Confidence is carried through, not bolted on</h2>
+  <p class="sub">
+    Every pocket claim is cross-referenced against the prediction's own per-residue
+    confidence. The figure below is taken from the live demo report — not a mock-up.
+  </p>
+
+  <figure>
+    <svg class="viz" role="img" viewBox="0 0 940 280" width="100%" preserveAspectRatio="xMidYMid meet" aria-label="Per-residue prediction confidence: pLDDT for 192 residues along the sequence."><rect x="0" y="0" width="940" height="280" fill="#fcfcfb"/><line x1="52" y1="179.5" x2="924" y2="179.5" stroke="#e1e0d9" stroke-width="1"/><text x="44" y="183.5" text-anchor="end" font-size="11" fill="#898781">25</text><line x1="52" y1="37.8" x2="924" y2="37.8" stroke="#e1e0d9" stroke-width="1"/><text x="44" y="41.8" text-anchor="end" font-size="11" fill="#898781">90</text><line x1="52" y1="16.0" x2="924" y2="16.0" stroke="#e1e0d9" stroke-width="1"/><text x="44" y="20.0" text-anchor="end" font-size="11" fill="#898781">100</text><rect x="52.00" y="31.17" width="4.54" height="202.83" fill="#0B4FBF"><title>A:ALA1 - pLDDT 93.0 (Very high)</title></rect><rect x="56.54" y="28.08" width="4.54" height="205.92" fill="#0B4FBF"><title>A:LEU2 - pLDDT 94.5 (Very high)</title></rect><rect x="61.08" y="31.28" width="4.54" height="202.72" fill="#0B4FBF"><title>A:VAL3 - pLDDT 93.0 (Very high)</title></rect><rect x="65.62" y="41.96" width="4.54" height="192.04" fill="#4C93C8"><title>A:ILE4 - pLDDT 88.1 (Confident)</title></rect><rect x="70.17" y="27.51" width="4.54" height="206.49" fill="#0B4FBF"><title>A:PHE5 - pLDDT 94.7 (Very high)</title></rect><rect x="74.71" y="30.52" width="4.54" height="203.48" fill="#0B4FBF"><title>A:LEU6 - pLDDT 93.3 (Very high)</title></rect><rect x="79.25" y="36.95" width="4.54" height="197.05" fill="#0B4FBF"><title>A:GLY7 - pLDDT 90.4 (Very high)</title></rect><rect x="83.79" y="29.65" width="4.54" height="204.35" fill="#0B4FBF"><title>A:ALA8 - pLDDT 93.7 (Very high)</title></rect><rect x="88.33" y="31.06" width="4.54" height="202.94" fill="#0B4FBF"><title>A:VAL9 - pLDDT 93.1 (Very high)</title></rect><rect x="92.88" y="31.52" width="4.54" height="202.48" fill="#0B4FBF"><title>A:LEU10 - pLDDT 92.9 (Very high)</title></rect><rect x="97.42" y="33.24" width="4.54" height="200.76" fill="#0B4FBF"><title>A:THR11 - pLDDT 92.1 (Very high)</title></rect><rect x="101.96" y="29.86" width="4.54" height="204.14" fill="#0B4FBF"><title>A:ALA12 - pLDDT 93.6 (Very high)</title></rect><rect x="106.50" y="38.26" width="4.54" height="195.74" fill="#4C93C8"><title>A:ILE13 - pLDDT 89.8 (Confident)</title></rect><rect x="111.04" y="34.51" width="4.54" height="199.49" fill="#0B4FBF"><title>A:PHE14 - pLDDT 91.5 (Very high)</title></rect><rect x="115.58" y="36.60" width="4.54" height="197.40" fill="#0B4FBF"><title>A:VAL15 - pLDDT 90.5 (Very high)</title></rect><rect x="120.12" y="29.52" width="4.54" height="204.48" fill="#0B4FBF"><title>A:GLY16 - pLDDT 93.8 (Very high)</title></rect><rect x="124.67" y="33.18" width="4.54" height="200.82" fill="#0B4FBF"><title>A:LEU17 - pLDDT 92.1 (Very high)</title></rect><rect x="129.21" y="35.36" width="4.54" height="198.64" fill="#0B4FBF"><title>A:ALA18 - pLDDT 91.1 (Very high)</title></rect><rect x="133.75" y="38.56" width="4.54" height="195.44" fill="#4C93C8"><title>A:SER19 - pLDDT 89.7 (Confident)</title></rect><rect x="138.29" y="35.12" width="4.54" height="198.88" fill="#0B4FBF"><title>A:VAL20 - pLDDT 91.2 (Very high)</title></rect><rect x="142.83" y="33.40" width="4.54" height="200.60" fill="#0B4FBF"><title>A:LEU21 - pLDDT 92.0 (Very high)</title></rect><rect x="147.38" y="35.25" width="4.54" height="198.75" fill="#0B4FBF"><title>A:ALA22 - pLDDT 91.2 (Very high)</title></rect><rect x="151.92" y="24.98" width="4.54" height="209.02" fill="#0B4FBF"><title>A:MET23 - pLDDT 95.9 (Very high)</title></rect><rect x="156.46" y="26.86" width="4.54" height="207.14" fill="#0B4FBF"><title>A:PHE24 - pLDDT 95.0 (Very high)</title></rect><rect x="161.00" y="51.16" width="4.54" height="182.84" fill="#4C93C8"><title>A:GLY25 - pLDDT 83.9 (Confident)</title></rect><rect x="165.54" y="45.80" width="4.54" height="188.20" fill="#4C93C8"><title>A:THR26 - pLDDT 86.3 (Confident)</title></rect><rect x="170.08" y="34.57" width="4.54" height="199.43" fill="#0B4FBF"><title>A:VAL27 - pLDDT 91.5 (Very high)</title></rect><rect x="174.62" y="36.21" width="4.54" height="197.79" fill="#0B4FBF"><title>A:LEU28 - pLDDT 90.7 (Very high)</title></rect><rect x="179.17" y="32.04" width="4.54" height="201.96" fill="#0B4FBF"><title>A:ILE29 - pLDDT 92.6 (Very high)</title></rect><rect x="183.71" y="32.02" width="4.54" height="201.98" fill="#0B4FBF"><title>A:ALA30 - pLDDT 92.7 (Very high)</title></rect><rect x="188.25" y="20.36" width="4.54" height="213.64" fill="#0B4FBF"><title>A:VAL31 - pLDDT 98.0 (Very high)</title></rect><rect x="192.79" y="40.72" width="4.54" height="193.28" fill="#4C93C8"><title>A:PHE32 - pLDDT 88.7 (Confident)</title></rect><rect x="197.33" y="35.90" width="4.54" height="198.10" fill="#0B4FBF"><title>A:GLY33 - pLDDT 90.9 (Very high)</title></rect><rect x="201.88" y="20.36" width="4.54" height="213.64" fill="#0B4FBF"><title>A:SER34 - pLDDT 98.0 (Very high)</title></rect><rect x="206.42" y="29.21" width="4.54" height="204.79" fill="#0B4FBF"><title>A:LEU35 - pLDDT 93.9 (Very high)</title></rect><rect x="210.96" y="29.10" width="4.54" height="204.90" fill="#0B4FBF"><title>A:VAL36 - pLDDT 94.0 (Very high)</title></rect><rect x="215.50" y="36.80" width="4.54" height="197.20" fill="#0B4FBF"><title>A:THR37 - pLDDT 90.5 (Very high)</title></rect><rect x="220.04" y="44.21" width="4.54" height="189.79" fill="#4C93C8"><title>A:ALA38 - pLDDT 87.1 (Confident)</title></rect><rect x="224.58" y="32.35" width="4.54" height="201.65" fill="#0B4FBF"><title>A:MET39 - pLDDT 92.5 (Very high)</title></rect><rect x="229.12" y="32.72" width="4.54" height="201.28" fill="#0B4FBF"><title>A:LEU40 - pLDDT 92.3 (Very high)</title></rect><rect x="233.67" y="41.46" width="4.54" height="192.54" fill="#4C93C8"><title>A:ILE41 - pLDDT 88.3 (Confident)</title></rect><rect x="238.21" y="37.91" width="4.54" height="196.09" fill="#4C93C8"><title>A:VAL42 - pLDDT 90.0 (Confident)</title></rect><rect x="242.75" y="33.92" width="4.54" height="200.08" fill="#0B4FBF"><title>A:PHE43 - pLDDT 91.8 (Very high)</title></rect><rect x="247.29" y="39.61" width="4.54" height="194.39" fill="#4C93C8"><title>A:GLY44 - pLDDT 89.2 (Confident)</title></rect><rect x="251.83" y="34.07" width="4.54" height="199.93" fill="#0B4FBF"><title>A:ALA45 - pLDDT 91.7 (Very high)</title></rect><rect x="256.38" y="32.81" width="4.54" height="201.19" fill="#0B4FBF"><title>A:ALA46 - pLDDT 92.3 (Very high)</title></rect><rect x="260.92" y="33.20" width="4.54" height="200.80" fill="#0B4FBF"><title>A:LEU47 - pLDDT 92.1 (Very high)</title></rect><rect x="265.46" y="36.75" width="4.54" height="197.25" fill="#0B4FBF"><title>A:VAL48 - pLDDT 90.5 (Very high)</title></rect><rect x="270.00" y="29.56" width="4.54" height="204.44" fill="#0B4FBF"><title>A:ILE49 - pLDDT 93.8 (Very high)</title></rect><rect x="274.54" y="27.62" width="4.54" height="206.38" fill="#0B4FBF"><title>A:PHE50 - pLDDT 94.7 (Very high)</title></rect><rect x="279.08" y="31.35" width="4.54" height="202.65" fill="#0B4FBF"><title>A:LEU51 - pLDDT 93.0 (Very high)</title></rect><rect x="283.62" y="38.78" width="4.54" height="195.22" fill="#4C93C8"><title>A:GLY52 - pLDDT 89.5 (Confident)</title></rect><rect x="288.17" y="28.67" width="4.54" height="205.33" fill="#0B4FBF"><title>A:ALA53 - pLDDT 94.2 (Very high)</title></rect><rect x="292.71" y="36.71" width="4.54" height="197.29" fill="#0B4FBF"><title>A:VAL54 - pLDDT 90.5 (Very high)</title></rect><rect x="297.25" y="27.68" width="4.54" height="206.32" fill="#0B4FBF"><title>A:LEU55 - pLDDT 94.6 (Very high)</title></rect><rect x="301.79" y="40.46" width="4.54" height="193.54" fill="#4C93C8"><title>A:THR56 - pLDDT 88.8 (Confident)</title></rect><rect x="306.33" y="27.47" width="4.54" height="206.53" fill="#0B4FBF"><title>A:ALA57 - pLDDT 94.7 (Very high)</title></rect><rect x="310.88" y="33.57" width="4.54" height="200.43" fill="#0B4FBF"><title>A:ILE58 - pLDDT 91.9 (Very high)</title></rect><rect x="315.42" y="41.62" width="4.54" height="192.38" fill="#4C93C8"><title>A:PHE59 - pLDDT 88.2 (Confident)</title></rect><rect x="319.96" y="35.49" width="4.54" height="198.51" fill="#0B4FBF"><title>A:VAL60 - pLDDT 91.1 (Very high)</title></rect><rect x="324.50" y="33.09" width="4.54" height="200.91" fill="#0B4FBF"><title>A:GLY61 - pLDDT 92.2 (Very high)</title></rect><rect x="329.04" y="31.65" width="4.54" height="202.35" fill="#0B4FBF"><title>A:LEU62 - pLDDT 92.8 (Very high)</title></rect><rect x="333.58" y="39.87" width="4.54" height="194.13" fill="#4C93C8"><title>A:ALA63 - pLDDT 89.0 (Confident)</title></rect><rect x="338.12" y="40.68" width="4.54" height="193.32" fill="#4C93C8"><title>A:SER64 - pLDDT 88.7 (Confident)</title></rect><rect x="342.67" y="32.13" width="4.54" height="201.87" fill="#0B4FBF"><title>A:VAL65 - pLDDT 92.6 (Very high)</title></rect><rect x="347.21" y="36.49" width="4.54" height="197.51" fill="#0B4FBF"><title>A:LEU66 - pLDDT 90.6 (Very high)</title></rect><rect x="351.75" y="31.89" width="4.54" height="202.11" fill="#0B4FBF"><title>A:ALA67 - pLDDT 92.7 (Very high)</title></rect><rect x="356.29" y="28.47" width="4.54" height="205.53" fill="#0B4FBF"><title>A:MET68 - pLDDT 94.3 (Very high)</title></rect><rect x="360.83" y="44.23" width="4.54" height="189.77" fill="#4C93C8"><title>A:PHE69 - pLDDT 87.0 (Confident)</title></rect><rect x="365.38" y="31.78" width="4.54" height="202.22" fill="#0B4FBF"><title>A:GLY70 - pLDDT 92.8 (Very high)</title></rect><rect x="369.92" y="25.44" width="4.54" height="208.56" fill="#0B4FBF"><title>A:THR71 - pLDDT 95.7 (Very high)</title></rect><rect x="374.46" y="35.38" width="4.54" height="198.62" fill="#0B4FBF"><title>A:VAL72 - pLDDT 91.1 (Very high)</title></rect><rect x="379.00" y="38.74" width="4.54" height="195.26" fill="#4C93C8"><title>A:LEU73 - pLDDT 89.6 (Confident)</title></rect><rect x="383.54" y="28.51" width="4.54" height="205.49" fill="#0B4FBF"><title>A:ILE74 - pLDDT 94.3 (Very high)</title></rect><rect x="388.08" y="31.78" width="4.54" height="202.22" fill="#0B4FBF"><title>A:ALA75 - pLDDT 92.8 (Very high)</title></rect><rect x="392.62" y="27.58" width="4.54" height="206.42" fill="#0B4FBF"><title>A:VAL76 - pLDDT 94.7 (Very high)</title></rect><rect x="397.17" y="35.71" width="4.54" height="198.29" fill="#0B4FBF"><title>A:PHE77 - pLDDT 91.0 (Very high)</title></rect><rect x="401.71" y="43.14" width="4.54" height="190.86" fill="#4C93C8"><title>A:GLY78 - pLDDT 87.5 (Confident)</title></rect><rect x="406.25" y="34.16" width="4.54" height="199.84" fill="#0B4FBF"><title>A:SER79 - pLDDT 91.7 (Very high)</title></rect><rect x="410.79" y="36.36" width="4.54" height="197.64" fill="#0B4FBF"><title>A:LEU80 - pLDDT 90.7 (Very high)</title></rect><rect x="415.33" y="28.36" width="4.54" height="205.64" fill="#0B4FBF"><title>A:VAL81 - pLDDT 94.3 (Very high)</title></rect><rect x="419.88" y="32.18" width="4.54" height="201.82" fill="#0B4FBF"><title>A:THR82 - pLDDT 92.6 (Very high)</title></rect><rect x="424.42" y="44.10" width="4.54" height="189.90" fill="#4C93C8"><title>A:ALA83 - pLDDT 87.1 (Confident)</title></rect><rect x="428.96" y="41.27" width="4.54" height="192.73" fill="#4C93C8"><title>A:MET84 - pLDDT 88.4 (Confident)</title></rect><rect x="433.50" y="27.66" width="4.54" height="206.34" fill="#0B4FBF"><title>A:LEU85 - pLDDT 94.7 (Very high)</title></rect><rect x="438.04" y="28.99" width="4.54" height="205.01" fill="#0B4FBF"><title>A:ILE86 - pLDDT 94.0 (Very high)</title></rect><rect x="442.58" y="37.63" width="4.54" height="196.37" fill="#0B4FBF"><title>A:VAL87 - pLDDT 90.1 (Very high)</title></rect><rect x="447.12" y="33.44" width="4.54" height="200.56" fill="#0B4FBF"><title>A:PHE88 - pLDDT 92.0 (Very high)</title></rect><rect x="451.67" y="30.52" width="4.54" height="203.48" fill="#0B4FBF"><title>A:GLY89 - pLDDT 93.3 (Very high)</title></rect><rect x="456.21" y="30.37" width="4.54" height="203.63" fill="#0B4FBF"><title>A:ALA90 - pLDDT 93.4 (Very high)</title></rect><rect x="460.75" y="27.71" width="4.54" height="206.29" fill="#0B4FBF"><title>A:ALA91 - pLDDT 94.6 (Very high)</title></rect><rect x="465.29" y="31.76" width="4.54" height="202.24" fill="#0B4FBF"><title>A:LEU92 - pLDDT 92.8 (Very high)</title></rect><rect x="469.83" y="34.05" width="4.54" height="199.95" fill="#0B4FBF"><title>A:VAL93 - pLDDT 91.7 (Very high)</title></rect><rect x="474.38" y="35.14" width="4.54" height="198.86" fill="#0B4FBF"><title>A:ILE94 - pLDDT 91.2 (Very high)</title></rect><rect x="478.92" y="26.53" width="4.54" height="207.47" fill="#0B4FBF"><title>A:PHE95 - pLDDT 95.2 (Very high)</title></rect><rect x="483.46" y="48.15" width="4.54" height="185.84" fill="#4C93C8"><title>A:LEU96 - pLDDT 85.2 (Confident)</title></rect><rect x="488.00" y="34.36" width="4.54" height="199.64" fill="#0B4FBF"><title>A:GLY97 - pLDDT 91.6 (Very high)</title></rect><rect x="492.54" y="33.22" width="4.54" height="200.78" fill="#0B4FBF"><title>A:ALA98 - pLDDT 92.1 (Very high)</title></rect><rect x="497.08" y="42.77" width="4.54" height="191.23" fill="#4C93C8"><title>A:VAL99 - pLDDT 87.7 (Confident)</title></rect><rect x="501.63" y="31.26" width="4.54" height="202.74" fill="#0B4FBF"><title>A:LEU100 - pLDDT 93.0 (Very high)</title></rect><rect x="506.17" y="37.69" width="4.54" height="196.31" fill="#0B4FBF"><title>A:THR101 - pLDDT 90.0 (Very high)</title></rect><rect x="510.71" y="27.79" width="4.54" height="206.21" fill="#0B4FBF"><title>A:ALA102 - pLDDT 94.6 (Very high)</title></rect><rect x="515.25" y="34.27" width="4.54" height="199.73" fill="#0B4FBF"><title>A:ILE103 - pLDDT 91.6 (Very high)</title></rect><rect x="519.79" y="29.06" width="4.54" height="204.94" fill="#0B4FBF"><title>A:PHE104 - pLDDT 94.0 (Very high)</title></rect><rect x="524.33" y="25.46" width="4.54" height="208.54" fill="#0B4FBF"><title>A:VAL105 - pLDDT 95.7 (Very high)</title></rect><rect x="528.88" y="30.93" width="4.54" height="203.07" fill="#0B4FBF"><title>A:GLY106 - pLDDT 93.2 (Very high)</title></rect><rect x="533.42" y="39.17" width="4.54" height="194.83" fill="#4C93C8"><title>A:LEU107 - pLDDT 89.4 (Confident)</title></rect><rect x="537.96" y="43.34" width="4.54" height="190.66" fill="#4C93C8"><title>A:ALA108 - pLDDT 87.5 (Confident)</title></rect><rect x="542.50" y="21.97" width="4.54" height="212.03" fill="#0B4FBF"><title>A:SER109 - pLDDT 97.3 (Very high)</title></rect><rect x="547.04" y="34.16" width="4.54" height="199.84" fill="#0B4FBF"><title>A:VAL110 - pLDDT 91.7 (Very high)</title></rect><rect x="551.58" y="37.95" width="4.54" height="196.05" fill="#4C93C8"><title>A:LEU111 - pLDDT 89.9 (Confident)</title></rect><rect x="556.12" y="32.50" width="4.54" height="201.50" fill="#0B4FBF"><title>A:ALA112 - pLDDT 92.4 (Very high)</title></rect><rect x="560.67" y="34.68" width="4.54" height="199.32" fill="#0B4FBF"><title>A:MET113 - pLDDT 91.4 (Very high)</title></rect><rect x="565.21" y="27.86" width="4.54" height="206.14" fill="#0B4FBF"><title>A:PHE114 - pLDDT 94.6 (Very high)</title></rect><rect x="569.75" y="33.22" width="4.54" height="200.78" fill="#0B4FBF"><title>A:GLY115 - pLDDT 92.1 (Very high)</title></rect><rect x="574.29" y="33.35" width="4.54" height="200.65" fill="#0B4FBF"><title>A:THR116 - pLDDT 92.0 (Very high)</title></rect><rect x="578.83" y="45.39" width="4.54" height="188.61" fill="#4C93C8"><title>A:VAL117 - pLDDT 86.5 (Confident)</title></rect><rect x="583.38" y="44.86" width="4.54" height="189.14" fill="#4C93C8"><title>A:LEU118 - pLDDT 86.8 (Confident)</title></rect><rect x="587.92" y="61.87" width="4.54" height="172.13" fill="#4C93C8"><title>A:ILE119 - pLDDT 79.0 (Confident)</title></rect><rect x="592.46" y="57.83" width="4.54" height="176.17" fill="#4C93C8"><title>A:ALA120 - pLDDT 80.8 (Confident)</title></rect><rect x="597.00" y="59.19" width="4.54" height="174.81" fill="#4C93C8"><title>A:VAL121 - pLDDT 80.2 (Confident)</title></rect><rect x="601.54" y="85.96" width="4.54" height="148.04" fill="#B8860B"><title>A:PHE122 - pLDDT 67.9 (Low)</title></rect><rect x="606.08" y="98.75" width="4.54" height="135.25" fill="#B8860B"><title>A:GLY123 - pLDDT 62.0 (Low)</title></rect><rect x="610.62" y="85.04" width="4.54" height="148.96" fill="#B8860B"><title>A:SER124 - pLDDT 68.3 (Low)</title></rect><rect x="615.17" y="82.21" width="4.54" height="151.79" fill="#B8860B"><title>A:LEU125 - pLDDT 69.6 (Low)</title></rect><rect x="619.71" y="107.78" width="4.54" height="126.22" fill="#B8860B"><title>A:VAL126 - pLDDT 57.9 (Low)</title></rect><rect x="624.25" y="115.10" width="4.54" height="118.90" fill="#B8860B"><title>A:THR127 - pLDDT 54.5 (Low)</title></rect><rect x="628.79" y="108.45" width="4.54" height="125.55" fill="#B8860B"><title>A:ALA128 - pLDDT 57.6 (Low)</title></rect><rect x="633.33" y="122.86" width="4.54" height="111.14" fill="#B8860B"><title>A:MET129 - pLDDT 51.0 (Low)</title></rect><rect x="637.88" y="125.37" width="4.54" height="108.63" fill="#B0431A"><title>A:LEU130 - pLDDT 49.8 (Very low)</title></rect><rect x="642.42" y="128.68" width="4.54" height="105.32" fill="#B0431A"><title>A:ILE131 - pLDDT 48.3 (Very low)</title></rect><rect x="646.96" y="126.90" width="4.54" height="107.10" fill="#B0431A"><title>A:VAL132 - pLDDT 49.1 (Very low)</title></rect><rect x="651.50" y="136.60" width="4.54" height="97.40" fill="#B0431A"><title>A:PHE133 - pLDDT 44.7 (Very low)</title></rect><rect x="656.04" y="135.29" width="4.54" height="98.71" fill="#B0431A"><title>A:GLY134 - pLDDT 45.3 (Very low)</title></rect><rect x="660.58" y="140.98" width="4.54" height="93.02" fill="#B0431A"><title>A:ALA135 - pLDDT 42.7 (Very low)</title></rect><rect x="665.12" y="147.63" width="4.54" height="86.37" fill="#B0431A"><title>A:ALA136 - pLDDT 39.6 (Very low)</title></rect><rect x="669.67" y="146.06" width="4.54" height="87.94" fill="#B0431A"><title>A:LEU137 - pLDDT 40.3 (Very low)</title></rect><rect x="674.21" y="151.55" width="4.54" height="82.45" fill="#B0431A"><title>A:VAL138 - pLDDT 37.8 (Very low)</title></rect><rect x="678.75" y="146.23" width="4.54" height="87.77" fill="#B0431A"><title>A:ILE139 - pLDDT 40.3 (Very low)</title></rect><rect x="683.29" y="154.08" width="4.54" height="79.92" fill="#B0431A"><title>A:PHE140 - pLDDT 36.7 (Very low)</title></rect><rect x="687.83" y="153.89" width="4.54" height="80.11" fill="#B0431A"><title>A:LEU141 - pLDDT 36.8 (Very low)</title></rect><rect x="692.38" y="136.75" width="4.54" height="97.25" fill="#B0431A"><title>A:GLY142 - pLDDT 44.6 (Very low)</title></rect><rect x="696.92" y="145.69" width="4.54" height="88.31" fill="#B0431A"><title>A:ALA143 - pLDDT 40.5 (Very low)</title></rect><rect x="701.46" y="144.31" width="4.54" height="89.69" fill="#B0431A"><title>A:VAL144 - pLDDT 41.1 (Very low)</title></rect><rect x="706.00" y="138.78" width="4.54" height="95.22" fill="#B0431A"><title>A:LEU145 - pLDDT 43.7 (Very low)</title></rect><rect x="710.54" y="142.57" width="4.54" height="91.43" fill="#B0431A"><title>A:THR146 - pLDDT 41.9 (Very low)</title></rect><rect x="715.08" y="138.60" width="4.54" height="95.40" fill="#B0431A"><title>A:ALA147 - pLDDT 43.8 (Very low)</title></rect><rect x="719.62" y="131.17" width="4.54" height="102.83" fill="#B0431A"><title>A:ILE148 - pLDDT 47.2 (Very low)</title></rect><rect x="724.17" y="128.53" width="4.54" height="105.47" fill="#B0431A"><title>A:PHE149 - pLDDT 48.4 (Very low)</title></rect><rect x="728.71" y="134.00" width="4.54" height="100.00" fill="#B0431A"><title>A:VAL150 - pLDDT 45.9 (Very low)</title></rect><rect x="733.25" y="116.63" width="4.54" height="117.37" fill="#B8860B"><title>A:GLY151 - pLDDT 53.8 (Low)</title></rect><rect x="737.79" y="121.23" width="4.54" height="112.77" fill="#B8860B"><title>A:LEU152 - pLDDT 51.7 (Low)</title></rect><rect x="742.33" y="119.20" width="4.54" height="114.80" fill="#B8860B"><title>A:ALA153 - pLDDT 52.7 (Low)</title></rect><rect x="746.88" y="112.81" width="4.54" height="121.19" fill="#B8860B"><title>A:SER154 - pLDDT 55.6 (Low)</title></rect><rect x="751.42" y="103.79" width="4.54" height="130.21" fill="#B8860B"><title>A:VAL155 - pLDDT 59.7 (Low)</title></rect><rect x="755.96" y="84.65" width="4.54" height="149.35" fill="#B8860B"><title>A:LEU156 - pLDDT 68.5 (Low)</title></rect><rect x="760.50" y="96.75" width="4.54" height="137.25" fill="#B8860B"><title>A:ALA157 - pLDDT 63.0 (Low)</title></rect><rect x="765.04" y="81.57" width="4.54" height="152.43" fill="#B8860B"><title>A:MET158 - pLDDT 69.9 (Low)</title></rect><rect x="769.58" y="89.97" width="4.54" height="144.03" fill="#B8860B"><title>A:PHE159 - pLDDT 66.1 (Low)</title></rect><rect x="774.12" y="69.17" width="4.54" height="164.83" fill="#4C93C8"><title>A:GLY160 - pLDDT 75.6 (Confident)</title></rect><rect x="778.67" y="56.31" width="4.54" height="177.69" fill="#4C93C8"><title>A:THR161 - pLDDT 81.5 (Confident)</title></rect><rect x="783.21" y="56.66" width="4.54" height="177.34" fill="#4C93C8"><title>A:VAL162 - pLDDT 81.3 (Confident)</title></rect><rect x="787.75" y="52.06" width="4.54" height="181.94" fill="#4C93C8"><title>A:LEU163 - pLDDT 83.5 (Confident)</title></rect><rect x="792.29" y="39.20" width="4.54" height="194.80" fill="#4C93C8"><title>A:ILE164 - pLDDT 89.4 (Confident)</title></rect><rect x="796.83" y="28.86" width="4.54" height="205.14" fill="#0B4FBF"><title>A:ALA165 - pLDDT 94.1 (Very high)</title></rect><rect x="801.38" y="29.10" width="4.54" height="204.90" fill="#0B4FBF"><title>A:VAL166 - pLDDT 94.0 (Very high)</title></rect><rect x="805.92" y="20.53" width="4.54" height="213.47" fill="#0B4FBF"><title>A:PHE167 - pLDDT 97.9 (Very high)</title></rect><rect x="810.46" y="32.07" width="4.54" height="201.93" fill="#0B4FBF"><title>A:GLY168 - pLDDT 92.6 (Very high)</title></rect><rect x="815.00" y="37.32" width="4.54" height="196.68" fill="#0B4FBF"><title>A:SER169 - pLDDT 90.2 (Very high)</title></rect><rect x="819.54" y="34.27" width="4.54" height="199.73" fill="#0B4FBF"><title>A:LEU170 - pLDDT 91.6 (Very high)</title></rect><rect x="824.08" y="33.92" width="4.54" height="200.08" fill="#0B4FBF"><title>A:VAL171 - pLDDT 91.8 (Very high)</title></rect><rect x="828.62" y="32.72" width="4.54" height="201.28" fill="#0B4FBF"><title>A:THR172 - pLDDT 92.3 (Very high)</title></rect><rect x="833.17" y="33.64" width="4.54" height="200.36" fill="#0B4FBF"><title>A:ALA173 - pLDDT 91.9 (Very high)</title></rect><rect x="837.71" y="32.31" width="4.54" height="201.69" fill="#0B4FBF"><title>A:MET174 - pLDDT 92.5 (Very high)</title></rect><rect x="842.25" y="44.36" width="4.54" height="189.64" fill="#4C93C8"><title>A:LEU175 - pLDDT 87.0 (Confident)</title></rect><rect x="846.79" y="28.01" width="4.54" height="205.99" fill="#0B4FBF"><title>A:ILE176 - pLDDT 94.5 (Very high)</title></rect><rect x="851.33" y="37.19" width="4.54" height="196.81" fill="#0B4FBF"><title>A:VAL177 - pLDDT 90.3 (Very high)</title></rect><rect x="855.88" y="41.11" width="4.54" height="192.89" fill="#4C93C8"><title>A:PHE178 - pLDDT 88.5 (Confident)</title></rect><rect x="860.42" y="29.28" width="4.54" height="204.72" fill="#0B4FBF"><title>A:GLY179 - pLDDT 93.9 (Very high)</title></rect><rect x="864.96" y="24.83" width="4.54" height="209.17" fill="#0B4FBF"><title>A:ALA180 - pLDDT 96.0 (Very high)</title></rect><rect x="869.50" y="30.21" width="4.54" height="203.79" fill="#0B4FBF"><title>A:ALA181 - pLDDT 93.5 (Very high)</title></rect><rect x="874.04" y="32.39" width="4.54" height="201.61" fill="#0B4FBF"><title>A:LEU182 - pLDDT 92.5 (Very high)</title></rect><rect x="878.58" y="39.54" width="4.54" height="194.46" fill="#4C93C8"><title>A:VAL183 - pLDDT 89.2 (Confident)</title></rect><rect x="883.12" y="20.36" width="4.54" height="213.64" fill="#0B4FBF"><title>A:ILE184 - pLDDT 98.0 (Very high)</title></rect><rect x="887.67" y="27.68" width="4.54" height="206.32" fill="#0B4FBF"><title>A:PHE185 - pLDDT 94.6 (Very high)</title></rect><rect x="892.21" y="40.90" width="4.54" height="193.10" fill="#4C93C8"><title>A:LEU186 - pLDDT 88.6 (Confident)</title></rect><rect x="896.75" y="38.54" width="4.54" height="195.46" fill="#4C93C8"><title>A:GLY187 - pLDDT 89.7 (Confident)</title></rect><rect x="901.29" y="32.87" width="4.54" height="201.13" fill="#0B4FBF"><title>A:ALA188 - pLDDT 92.3 (Very high)</title></rect><rect x="905.83" y="43.60" width="4.54" height="190.40" fill="#4C93C8"><title>A:VAL189 - pLDDT 87.3 (Confident)</title></rect><rect x="910.38" y="32.33" width="4.54" height="201.67" fill="#0B4FBF"><title>A:LEU190 - pLDDT 92.5 (Very high)</title></rect><rect x="914.92" y="36.45" width="4.54" height="197.55" fill="#0B4FBF"><title>A:THR191 - pLDDT 90.6 (Very high)</title></rect><rect x="919.46" y="25.42" width="4.54" height="208.58" fill="#0B4FBF"><title>A:ALA192 - pLDDT 95.7 (Very high)</title></rect><line x1="52" y1="81.4" x2="924" y2="81.4" stroke="#52514e" stroke-width="1.5" stroke-dasharray="5 3"/><text x="44" y="85.4" text-anchor="end" font-size="11" font-weight="600" fill="#52514e">70</text><line x1="52" y1="125.0" x2="924" y2="125.0" stroke="#52514e" stroke-width="1.5" stroke-dasharray="5 3"/><text x="44" y="129.0" text-anchor="end" font-size="11" font-weight="600" fill="#52514e">50</text><line x1="52" y1="234" x2="924" y2="234" stroke="#c3c2b7" stroke-width="1"/><line x1="52.0" y1="234" x2="52.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="52.0" y="251" text-anchor="middle" font-size="11" fill="#898781">1</text><line x1="161.0" y1="234" x2="161.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="161.0" y="251" text-anchor="middle" font-size="11" fill="#898781">25</text><line x1="270.0" y1="234" x2="270.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="270.0" y="251" text-anchor="middle" font-size="11" fill="#898781">49</text><line x1="379.0" y1="234" x2="379.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="379.0" y="251" text-anchor="middle" font-size="11" fill="#898781">73</text><line x1="488.0" y1="234" x2="488.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="488.0" y="251" text-anchor="middle" font-size="11" fill="#898781">97</text><line x1="597.0" y1="234" x2="597.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="597.0" y="251" text-anchor="middle" font-size="11" fill="#898781">121</text><line x1="706.0" y1="234" x2="706.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="706.0" y="251" text-anchor="middle" font-size="11" fill="#898781">145</text><line x1="815.0" y1="234" x2="815.0" y2="238" stroke="#c3c2b7" stroke-width="1"/><text x="815.0" y="251" text-anchor="middle" font-size="11" fill="#898781">169</text><text x="488" y="274" text-anchor="middle" font-size="11" fill="#52514e">Residue (sequence order)</text><text x="14" y="125" font-size="11" fill="#52514e" transform="rotate(-90 14 125)" text-anchor="middle">pLDDT</text></svg>
+    <figcaption>
+      <strong>Per-residue pLDDT along the sequence.</strong> The trough between residues
+      ~120 and ~150 is a region the model is not confident about. Pocket&nbsp;2 of this
+      structure sits inside it — so although it scores respectably on geometry, the report
+      flags it <em>moderate</em> and says plainly that its shape and volume are uncertain.
+      That distinction is the whole point of the tool.
+    </figcaption>
+  </figure>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Structure QC</h3>
+      <p>Per-residue confidence mapped onto the sequence, low-confidence regions flagged,
+      chain breaks and numbering gaps reported.</p>
+    </div>
+    <div class="card">
+      <h3>Pocket detection</h3>
+      <p>fpocket does the cavity geometry and druggability scoring. Each pocket is then
+      annotated with what the prediction confidence permits you to conclude from it.</p>
+    </div>
+    <div class="card">
+      <h3>MD setup</h3>
+      <p>A cleaned structure, CHARMM36m parameters with the correct non-bonded settings,
+      equilibration and production <code>.mdp</code> files, and a written protocol.</p>
+    </div>
+    <div class="card">
+      <h3>One shareable file</h3>
+      <p>A single self-contained HTML report. No scripts, no CDN, no external assets — it
+      opens offline and still renders years later.</p>
+    </div>
+  </div>
+</section>
+
+<section id="consensus">
+  <h2>Cross-model consensus</h2>
+  <p class="sub">
+    Supply predictions of the same protein from more than one tool and Pocketscribe matches
+    pockets across them — then reports agreement between <em>independent</em> methods
+    separately from agreement between close relatives.
+  </p>
+
+  <figure><svg viewBox="0 0 760 330" role="img" width="100%"
+  aria-label="Three predictions of one protein, grouped into two architecture families. AlphaFold2 and OpenFold belong to the MSA family; ESMFold is a single-sequence language model. Pocket 1 was detected by all three, giving cross-family support. Pocket 2 was detected only by AlphaFold2 and OpenFold and missed by ESMFold, giving same-family support only.">
+  <rect width="760" height="330" fill="#fcfcfb"/>
+  <g font-family="ui-sans-serif, system-ui, sans-serif">
+
+  <text x="16" y="24" font-size="12" font-weight="600" fill="#52514e">THREE PREDICTIONS OF ONE PROTEIN</text>
+
+  <!-- family group: MSA / co-evolution -->
+  <rect x="16" y="38" width="250" height="118" rx="9" fill="none" stroke="#c3c2b7" stroke-dasharray="4 3"/>
+  <text x="28" y="58" font-size="11.5" fill="#898781">MSA / co-evolution family</text>
+  <rect x="30" y="68" width="106" height="34" rx="6" fill="#0B4FBF"/>
+  <text x="83" y="90" font-size="13" fill="#fff" text-anchor="middle" font-weight="600">AlphaFold2</text>
+  <rect x="146" y="68" width="106" height="34" rx="6" fill="#0B4FBF"/>
+  <text x="199" y="90" font-size="13" fill="#fff" text-anchor="middle" font-weight="600">OpenFold</text>
+  <text x="30" y="126" font-size="11.5" fill="#898781">shares an inference pathway —</text>
+  <text x="30" y="142" font-size="11.5" fill="#898781">can reproduce the same errors</text>
+
+  <!-- family group: single-sequence language model -->
+  <rect x="286" y="38" width="160" height="118" rx="9" fill="none" stroke="#c3c2b7" stroke-dasharray="4 3"/>
+  <text x="298" y="58" font-size="11.5" fill="#898781">Single-sequence LM</text>
+  <rect x="300" y="68" width="106" height="34" rx="6" fill="#B8860B"/>
+  <text x="353" y="90" font-size="13" fill="#fff" text-anchor="middle" font-weight="600">ESMFold</text>
+  <text x="300" y="126" font-size="11.5" fill="#898781">no MSA — independent</text>
+  <text x="300" y="142" font-size="11.5" fill="#898781">route to the same fold</text>
+
+  <text x="470" y="96" font-size="12" fill="#898781">Pockets are matched across</text>
+  <text x="470" y="113" font-size="12" fill="#898781">the models, then scored by</text>
+  <text x="470" y="130" font-size="12" fill="#898781">which families agree.</text>
+
+  <path d="M 230 168 L 230 186" stroke="#c3c2b7" stroke-width="1.5" fill="none"/>
+  <path d="M 226 180 L 230 188 L 234 180 Z" fill="#c3c2b7"/>
+  <path d="M 530 168 L 530 186" stroke="#c3c2b7" stroke-width="1.5" fill="none"/>
+  <path d="M 526 180 L 530 188 L 534 180 Z" fill="#c3c2b7"/>
+
+  <!-- outcome: cross-family -->
+  <rect x="16" y="194" width="360" height="118" rx="8" fill="#fff" stroke="#0B4FBF" stroke-width="1.5"/>
+  <text x="32" y="218" font-size="13.5" font-weight="650" fill="#0B4FBF">Pocket 1 — cross-family</text>
+  <text x="32" y="238" font-size="11" fill="#898781">DETECTED BY</text>
+  <rect x="32" y="246" width="80" height="22" rx="4" fill="#0B4FBF"/>
+  <text x="72" y="261" font-size="11" fill="#fff" text-anchor="middle">AlphaFold2</text>
+  <rect x="118" y="246" width="74" height="22" rx="4" fill="#0B4FBF"/>
+  <text x="155" y="261" font-size="11" fill="#fff" text-anchor="middle">OpenFold</text>
+  <rect x="198" y="246" width="72" height="22" rx="4" fill="#B8860B"/>
+  <text x="234" y="261" font-size="11" fill="#fff" text-anchor="middle">ESMFold</text>
+  <text x="32" y="288" font-size="12" fill="#52514e">Both families agree — the strongest robustness</text>
+  <text x="32" y="303" font-size="12" fill="#52514e">signal short of an experiment.</text>
+
+  <!-- outcome: same-family only -->
+  <rect x="396" y="194" width="348" height="118" rx="8" fill="#fff" stroke="#B8860B" stroke-width="1.5"/>
+  <text x="412" y="218" font-size="13.5" font-weight="650" fill="#B8860B">Pocket 2 — same-family only</text>
+  <text x="412" y="238" font-size="11" fill="#898781">DETECTED BY</text>
+  <rect x="412" y="246" width="80" height="22" rx="4" fill="#0B4FBF"/>
+  <text x="452" y="261" font-size="11" fill="#fff" text-anchor="middle">AlphaFold2</text>
+  <rect x="498" y="246" width="74" height="22" rx="4" fill="#0B4FBF"/>
+  <text x="535" y="261" font-size="11" fill="#fff" text-anchor="middle">OpenFold</text>
+  <rect x="578" y="246" width="88" height="22" rx="4" fill="none" stroke="#c3c2b7" stroke-dasharray="3 2"/>
+  <text x="622" y="261" font-size="11" fill="#898781" text-anchor="middle">not ESMFold</text>
+  <text x="412" y="288" font-size="12" fill="#52514e">One family only — the two models can share an</text>
+  <text x="412" y="303" font-size="12" fill="#52514e">error, so this is not independent confirmation.</text>
+
+  </g>
+</svg>
+    <figcaption>
+      <strong>Not all agreement is equal.</strong> OpenFold is a reimplementation of
+      AlphaFold2, so the two share an inference pathway and can reproduce each other's
+      errors. ESMFold predicts from a single sequence with no MSA, so its agreement is
+      genuinely independent evidence. Pocketscribe never pools the two into one
+      consensus score.
+    </figcaption>
+  </figure>
+
+  <p>
+    Two pockets from different models count as the same pocket only when <strong>both</strong>
+    criteria hold: their lining-residue sets overlap above a threshold once mapped through
+    a sequence alignment, <strong>and</strong> their centroids fall within a distance
+    tolerance after Kabsch superposition. Requiring both avoids matching distant cavities
+    that share a few residues, and nearby cavities that share none.
+  </p>
+
+  <div class="callout">
+    <p>
+      The principle — that agreement between independent methods is stronger evidence than
+      agreement between close relatives — is not new; structural biologists already reason
+      this way about independent crystal forms. What Pocketscribe contributes is packaging
+      it as an automatic pipeline step for predicted-structure pocket triage, with an
+      identity gate, cross-model residue mapping, superposition and family-aware scoring.
+    </p>
+  </div>
+</section>
+
+<section id="sources">
+  <h2>Structure sources</h2>
+  <p class="sub">
+    Every prediction tool encodes confidence differently, so each has its own adapter. If
+    confidence cannot be found or parsed, Pocketscribe fails with a specific error rather
+    than guessing — a silently wrong confidence value would poison every pocket caveat
+    downstream.
+  </p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Source</th><th>Tier</th><th>Confidence</th><th>Method family</th></tr></thead>
+    <tbody>
+      <tr><td><strong>AlphaFold2</strong></td><td class="t1">Tier 1</td><td>pLDDT in B-factor column</td><td>MSA / co-evolution</td></tr>
+      <tr><td><strong>OpenFold</strong></td><td class="t1">Tier 1</td><td>pLDDT in B-factor column</td><td>MSA / co-evolution</td></tr>
+      <tr><td><strong>ColabFold</strong></td><td class="t1">Tier 1</td><td>pLDDT in B-factor column</td><td>MSA / co-evolution</td></tr>
+      <tr><td><strong>ESMFold</strong></td><td class="t1">Tier 1</td><td>pLDDT in B-factor column</td><td>Single-sequence LM</td></tr>
+      <tr><td><strong>Boltz-1 / Boltz-2</strong></td><td class="t1">Tier 2 · implemented</td><td>sidecar JSON, 0–1 scale</td><td>MSA / co-evolution</td></tr>
+      <tr><td>Protenix</td><td class="t2">Tier 2 · planned</td><td>atom-level, sidecar JSON</td><td>MSA / co-evolution</td></tr>
+      <tr><td>AlphaFold3</td><td class="t2">Tier 2 · planned</td><td>AF3 mmCIF conventions</td><td>MSA / co-evolution</td></tr>
+      <tr><td>RoseTTAFold</td><td class="t2">Tier 2 · planned</td><td>predicted LDDT, <code>.npz</code></td><td>MSA / co-evolution</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="font-size:14.5px;color:var(--ink-2);margin-top:14px">
+    Adding a source is the most useful contribution you can make, and the adapter interface
+    exists for it — there's a step-by-step walkthrough in
+    <a href="https://github.com/Jonahnki/Pocketscribe/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>.
+  </p>
+</section>
+
+<section id="install">
+  <h2>Install and run</h2>
+  <p class="sub">Python 3.10+, plus fpocket as an external binary.</p>
+  <pre><code># fpocket is a C program, not a pip package
+conda install -c conda-forge fpocket
+
+git clone https://github.com/Jonahnki/Pocketscribe.git
+cd Pocketscribe &amp;&amp; pip install -e .
+
+# try it on a bundled synthetic example — no network needed
+pocketscribe demo --output demo_report.html
+
+# a real run
+pocketscribe run --pdb model.pdb --source alphafold2 --md-setup --output report.html
+
+# cross-model consensus: 2+ predictions of the SAME protein
+pocketscribe run \
+    --pdb af2_model.pdb:alphafold2 \
+    --pdb esm_model.pdb:esmfold \
+    --output consensus.html</code></pre>
+  <p style="font-size:14.5px;color:var(--ink-2)">
+    Source auto-detection is available with <code>--source auto</code>; it always prints the
+    evidence behind its guess so a wrong one is visible and correctable.
+  </p>
+</section>
+
+<section id="built-on">
+  <h2>Built on</h2>
+  <p class="sub">
+    Pocketscribe is an integration layer. It introduces no new pocket-detection algorithm,
+    no new druggability model and no new force field. The science below is other people's —
+    please cite it, not only this tool.
+  </p>
+  <ul class="plain refs">
+    <li><strong>fpocket</strong> — Le Guilloux, Schmidtke &amp; Tuffery, <em>BMC Bioinformatics</em> 10, 168 (2009). Cavity detection.</li>
+    <li><strong>fpocket druggability</strong> — Schmidtke &amp; Barril, <em>J. Med. Chem.</em> 53, 5858–5867 (2010).</li>
+    <li><strong>GROMACS</strong> — Abraham <em>et al.</em>, <em>SoftwareX</em> 1–2, 19–25 (2015).</li>
+    <li><strong>CHARMM36m</strong> — Huang <em>et al.</em>, <em>Nature Methods</em> 14, 71–73 (2017).</li>
+    <li><strong>AlphaFold2</strong> — Jumper <em>et al.</em>, <em>Nature</em> 596, 583–589 (2021).</li>
+    <li><strong>OpenFold</strong> — Ahdritz <em>et al.</em>, <em>Nature Methods</em> 21, 1514–1524 (2024).</li>
+    <li><strong>ColabFold</strong> — Mirdita <em>et al.</em>, <em>Nature Methods</em> 19, 679–682 (2022).</li>
+    <li><strong>ESMFold</strong> — Lin <em>et al.</em>, <em>Science</em> 379, 1123–1130 (2023).</li>
+    <li><strong>Boltz-1</strong> — Wohlwend <em>et al.</em>, <em>bioRxiv</em> (2024).</li>
+    <li><strong>Biopython</strong> — Cock <em>et al.</em>, <em>Bioinformatics</em> 25, 1422–1423 (2009). Parsing and alignment.</li>
+    <li><strong>Kabsch superposition</strong> — Kabsch, <em>Acta Cryst. A</em> 32, 922–923 (1976).</li>
+  </ul>
+</section>
+
+<footer>
+  <p>
+    <strong>Research use only.</strong> Pocketscribe is a first-pass triage tool. It is not
+    a medical device, not a diagnostic, and carries no clinical or therapeutic claim. Every
+    pocket it describes exists in a computational model, not an experimental structure. A
+    high druggability score means a cavity has geometry and chemistry that tend to accompany
+    ligandable sites — it is not evidence that any compound binds. It exists to help a group
+    decide where to spend expert time, docking, simulation and experiments; never to replace
+    them.
+  </p>
+  <p>
+    MIT licensed ·
+    <a href="https://github.com/Jonahnki/Pocketscribe">github.com/Jonahnki/Pocketscribe</a> ·
+    <a href="https://github.com/Jonahnki/Pocketscribe/blob/main/CITATION.cff">How to cite</a>
+  </p>
+  <p>By John Adeyemo Adedeji · <a href="https://orcid.org/0009-0004-1257-4551">ORCID 0009-0004-1257-4551</a> · Osun State University, Osogbo, Nigeria</p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -6,9 +6,8 @@ name: tests
 #   every push / PR  ->  ONE Linux job (lint + tests + demo smoke test), ~2 minutes
 #   on demand        ->  the full matrix and the real-fpocket integration job
 #
-# Linux runners cost a 1x minute multiplier. macOS costs 10x and Windows 2x, so
-# neither runs automatically here: a five-minute macOS job would consume fifty
-# minutes of allowance.
+# Linux runners bill at 1x. macOS bills at 10x and Windows at 2x, so neither runs
+# automatically here: a five-minute macOS job would cost fifty minutes of allowance.
 
 on:
   push:
@@ -36,8 +35,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # The everyday job. Lint and tests share one runner: a second job would pay the
-  # ~30s checkout + Python setup cost again for about 10 seconds of ruff.
+  # ── The everyday job. Lint and tests share one runner: a second job would pay
+  # ── the ~30s checkout + Python setup cost again for about 10 seconds of ruff.
   check:
     name: lint + tests (3.12)
     runs-on: ubuntu-latest
@@ -72,7 +71,7 @@ jobs:
           grep -q "same-family-only" /tmp/consensus.html
           grep -q "cross-family" /tmp/consensus.html
 
-  # Opt-in: other supported Python versions. Linux only (1x minute multiplier).
+  # ── Opt-in: other supported Python versions. Linux only (1x minute multiplier).
   matrix:
     name: tests (py${{ matrix.python-version }})
     if: github.event_name == 'workflow_dispatch' && inputs.full_matrix
@@ -94,8 +93,8 @@ jobs:
           pip install -e ".[dev]"
       - run: pytest -q
 
-  # Opt-in: the only place the real fpocket binary is exercised. Kept out of the
-  # default path because installing it costs several minutes every run.
+  # ── Opt-in: the only place the real fpocket binary is exercised. Kept out of the
+  # ── default path because installing it costs several minutes every run.
   fpocket:
     name: real fpocket integration
     if: github.event_name == 'workflow_dispatch' && inputs.fpocket

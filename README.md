@@ -71,9 +71,9 @@ open pocket-detection tool does this.
 
 ### What Pocketscribe is not
 
-Pocketscribe is a **workflow and integration contribution**, of the kind the Journal of
-Open Source Software exists to recognise: research software that removes real friction
-for a community, independently of whether any single algorithm inside it is new.
+Pocketscribe is a **workflow and integration contribution**: research software whose
+value is in removing real friction for a community, independently of whether any single
+algorithm inside it is new.
 
 It introduces **no new pocket-detection algorithm, no new druggability model and no new
 force field**. fpocket does the cavity geometry and the druggability scoring, GROMACS and

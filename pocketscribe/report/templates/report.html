@@ -1,0 +1,651 @@
+{% extends "base.html" %}
+
+{% block title %}Pocketscribe - {{ primary.label }}{% endblock %}
+{% block heading %}Binding-pocket assessment of a predicted structure{% endblock %}
+{% block subtitle %}
+  <code>{{ primary.label }}</code> &middot; {{ primary.source.display_name }}
+  {%- if result.is_consensus_run %} &middot; cross-model consensus over {{ result.structures|length }} models{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# ------------------------------------------------------------------ #}
+{# 1. Executive summary                                                #}
+{# ------------------------------------------------------------------ #}
+<section id="summary">
+  <h2>Executive summary</h2>
+  <p class="section-note">
+    A first-pass, research-use triage of where a small molecule might bind this
+    predicted model, and how far the prediction can be trusted at each site.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat">
+      <span class="stat-label">Pockets detected</span>
+      <span class="stat-value">{{ primary_pockets.pockets|length }}</span>
+      <span class="stat-sub">by {{ primary_pockets.backend }}{% if primary_pockets.backend_version and primary_pockets.backend_version != 'unknown' %} {{ primary_pockets.backend_version }}{% endif %}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Mean pLDDT</span>
+      <span class="stat-value">{{ '%.1f'|format(primary.confidence.mean) }}</span>
+      <span class="stat-sub">{{ '%.0f'|format(primary.confidence.fraction_below_70 * 100) }}% of residues below 70</span>
+    </div>
+    {% if top_pocket %}
+    <div class="stat">
+      <span class="stat-label">Top pocket confidence</span>
+      <span class="stat-value">{{ top_pocket.confidence.mean_confidence if top_pocket.confidence.mean_confidence is not none else 'n/a' }}</span>
+      <span class="stat-sub">mean pLDDT of its {{ top_pocket.residues|length }} lining residues</span>
+    </div>
+    {% endif %}
+    {% if result.consensus %}
+    <div class="stat">
+      <span class="stat-label">Cross-family pockets</span>
+      <span class="stat-value">{{ result.consensus.n_cross_family_pockets }}</span>
+      <span class="stat-sub">found by independent method families</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if not primary_pockets.backend_is_fpocket %}
+  <div class="callout callout-warn">
+    <p>
+      <strong>These pockets were not detected with fpocket.</strong> The
+      <code>builtin</code> fallback backend was used, which is a plain grid-based
+      buriedness scan. Its &ldquo;druggability&rdquo; column is a transparent
+      volume / buriedness / hydrophobicity heuristic documented in the methods
+      appendix &mdash; it is <em>not</em> fpocket&rsquo;s trained and validated
+      druggability score, and the two numbers are not comparable. Install fpocket and
+      re-run before drawing any scientific conclusion from these scores.
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h3 style="margin-top:0">What this report is</h3>
+    <p style="margin-bottom:0">
+      Pocketscribe took a structure predicted by {{ primary.source.display_name }},
+      carried its per-residue confidence through every stage, and annotated each
+      detected cavity with what that confidence means for interpreting it. The
+      deliverable is triage: a ranked, caveated shortlist to help decide where to spend
+      docking, simulation or wet-lab effort &mdash; not a substitute for any of them.
+    </p>
+  </div>
+
+  {% if result.warnings %}
+  <div class="callout">
+    <p><strong>Run warnings</strong></p>
+    <ul class="plain" style="margin-bottom:0">
+      {% for warning in result.warnings %}<li>{{ warning }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+
+{# ------------------------------------------------------------------ #}
+{# 2. Input structure metadata                                          #}
+{# ------------------------------------------------------------------ #}
+<section id="input">
+  <h2>Input structure</h2>
+  <div class="table-scroll">
+    <table>
+      <caption>Provenance and composition of every structure analysed in this run.</caption>
+      <thead>
+        <tr>
+          <th>Model</th><th>Source</th><th>Support tier</th><th>Method family</th>
+          <th>Chains</th><th>Residues</th><th>Detection</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for structure in result.structures %}
+        <tr>
+          <td><span class="mono">{{ structure.label }}</span></td>
+          <td>{{ structure.source.display_name }}</td>
+          <td>
+            <span class="badge {{ 'badge-tier1' if structure.source.tier.value == 'tier-1' else 'badge-tier2' }}">
+              {{ tier_label(structure.source.tier) }}
+            </span>
+          </td>
+          <td>{{ family_label(structure.source.family) }}</td>
+          <td class="num">{{ structure.qc.n_chains }} ({{ structure.qc.chain_ids|join(', ') }})</td>
+          <td class="num">{{ structure.qc.n_residues }}</td>
+          <td>
+            {% if structure.source_was_auto_detected %}
+              auto-detected{% if structure.detection_evidence %}: {{ structure.detection_evidence|join('; ') }}{% endif %}
+            {% else %}declared by user{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% for structure in result.structures %}
+    {% if structure.source.notes %}
+    <p class="caveat"><strong>{{ structure.source.display_name }}:</strong> {{ structure.source.notes }}</p>
+    {% endif %}
+  {% endfor %}
+
+  {% if not primary.source.uses_msa %}
+  <div class="callout">
+    <p style="margin-bottom:0">
+      <strong>No MSA informed this prediction.</strong>
+      {{ primary.source.display_name }} predicts from a single sequence, so no explicit
+      evolutionary-coupling signal contributed to the fold. This matters for reading the
+      confidence values below: they reflect the language model&rsquo;s certainty, not
+      agreement across homologues.
+    </p>
+  </div>
+  {% endif %}
+</section>
+
+{# ------------------------------------------------------------------ #}
+{# 3. Confidence / QC                                                   #}
+{# ------------------------------------------------------------------ #}
+<section id="confidence">
+  <h2>Structure quality and prediction confidence</h2>
+  <p class="section-note">
+    Every pocket claim later in this report is caveated against this map. Regions below
+    pLDDT 70 are commonly flexible or disordered; below 50 they should not be read
+    structurally at all.
+  </p>
+
+  <figure>
+    {{ confidence_plot_svg|safe }}
+    {{ confidence_legend_svg|safe }}
+    <figcaption>
+      Per-residue {{ primary.confidence.metric.value }} along the sequence of
+      <span class="mono">{{ primary.label }}</span>. Dashed lines mark the 70 and 50
+      interpretation thresholds. Hover any residue for its exact value.
+    </figcaption>
+  </figure>
+
+  <div class="stat-row">
+    <div class="stat">
+      <span class="stat-label">Mean</span>
+      <span class="stat-value">{{ '%.1f'|format(primary.confidence.mean) }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Median</span>
+      <span class="stat-value">{{ '%.1f'|format(primary.confidence.median) }}</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Below 70</span>
+      <span class="stat-value">{{ '%.0f'|format(primary.confidence.fraction_below_70 * 100) }}%</span>
+      <span class="stat-sub">{{ primary.confidence.regions_below_70|length }} contiguous region(s)</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Below 50</span>
+      <span class="stat-value">{{ '%.0f'|format(primary.confidence.fraction_below_50 * 100) }}%</span>
+      <span class="stat-sub">{{ primary.confidence.regions_below_50|length }} contiguous region(s)</span>
+    </div>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <caption>
+        Residue counts per confidence band &mdash; the same data as the figure, as a table.
+      </caption>
+      <thead><tr><th>Band</th><th>Residues</th><th>Share</th></tr></thead>
+      <tbody>
+        {% for key, label in band_rows %}
+        <tr>
+          <td>{{ label }}</td>
+          <td class="num">{{ band_counts[key] }}</td>
+          <td class="num">{{ '%.1f'|format(band_counts[key] / primary.confidence.residues|length * 100) }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if primary.confidence.regions_below_50 %}
+  <h3>Regions below pLDDT 50</h3>
+  <div class="table-scroll">
+    <table>
+      <caption>Contiguous runs of very-low-confidence residues. A pocket overlapping one of these is flagged in the pocket table.</caption>
+      <thead><tr><th>Region</th><th>Length</th><th>Mean pLDDT</th></tr></thead>
+      <tbody>
+        {% for region in primary.confidence.regions_below_50 %}
+        <tr>
+          <td class="mono">{{ region.label }}</td>
+          <td class="num">{{ region.length }}</td>
+          <td class="num">{{ region.mean_value }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if primary.qc.notes %}
+  <h3>Geometry checks</h3>
+  <ul class="plain">
+    {% for note in primary.qc.notes %}<li>{{ note }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+</section>
+
+{# ------------------------------------------------------------------ #}
+{# 4. Ranked pockets                                                    #}
+{# ------------------------------------------------------------------ #}
+<section id="pockets">
+  <h2>Ranked pockets</h2>
+  <p class="section-note">
+    Ranked by {{ 'fpocket druggability score' if primary_pockets.backend_is_fpocket else 'the built-in heuristic score (not a validated druggability model)' }}.
+    The confidence column is not a second opinion on druggability &mdash; it says how far
+    the underlying prediction supports the geometry that produced the score.
+  </p>
+
+  {% if primary_pockets.pockets %}
+  <div class="table-scroll">
+    <table>
+      <caption>
+        {{ primary_pockets.pockets|length }} pocket(s) detected; showing all.
+        Volumes in &#8491;&sup3;.
+      </caption>
+      <thead>
+        <tr>
+          <th>Rank</th><th>Volume</th><th>Druggability</th><th>Hydrophobicity</th>
+          <th>Polarity</th><th>Lining residues</th><th>Mean pLDDT</th><th>Caveat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pocket in primary_pockets.pockets %}
+        <tr>
+          <td class="num"><strong>{{ pocket.rank }}</strong></td>
+          <td class="num">{{ '%.0f'|format(pocket.volume) if pocket.volume is not none else '&ndash;'|safe }}</td>
+          <td class="num">{{ '%.3f'|format(pocket.druggability_score) if pocket.druggability_score is not none else '&ndash;'|safe }}</td>
+          <td class="num">{{ '%.1f'|format(pocket.hydrophobicity_score) if pocket.hydrophobicity_score is not none else '&ndash;'|safe }}</td>
+          <td class="num">{{ '%.1f'|format(pocket.polarity_score) if pocket.polarity_score is not none else '&ndash;'|safe }}</td>
+          <td class="num">{{ pocket.residues|length }}</td>
+          <td class="num">
+            {{ pocket.confidence.mean_confidence if pocket.confidence.mean_confidence is not none else '&ndash;'|safe }}
+            {{ caveat_meter(pocket.confidence.fraction_below_70)|safe }}
+          </td>
+          <td>
+            <span class="badge badge-{{ pocket.confidence.level.value }}">{{ pocket.confidence.level.value }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Confidence caveats in full</h3>
+  {% for pocket in primary_pockets.pockets[:result.top_pockets_requested] %}
+  <p class="caveat caveat-{{ pocket.confidence.level.value }}">
+    <strong>Pocket {{ pocket.rank }}.</strong> {{ pocket.confidence.text }}
+  </p>
+  {% endfor %}
+  {% else %}
+  <p class="empty">No pockets passed the detection thresholds for this structure.</p>
+  {% endif %}
+
+  {% if primary_pockets.warnings %}
+  <div class="callout callout-warn">
+    <ul class="plain" style="margin-bottom:0">
+      {% for warning in primary_pockets.warnings %}<li>{{ warning }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+
+{# ------------------------------------------------------------------ #}
+{# 5. Cross-model consensus                                             #}
+{# ------------------------------------------------------------------ #}
+{% if result.consensus %}
+<section id="consensus">
+  <h2>Cross-model consensus</h2>
+  <p class="section-note">
+    Pockets matched across independent predictions of the same protein. Agreement
+    between <em>different</em> architecture families is reported separately from
+    agreement <em>within</em> one family, and the two are never pooled: models in one
+    family can reproduce each other&rsquo;s systematic errors, so their agreement is
+    not independent evidence.
+  </p>
+
+  {% if not result.consensus.cross_family_comparison_possible %}
+  <div class="callout callout-warn">
+    <p style="margin-bottom:0">
+      <strong>No cross-family comparison was possible.</strong> Every model supplied
+      belongs to the same architecture family, so nothing in the table below constitutes
+      independent confirmation. Adding a prediction from a different family &mdash; for
+      example ESMFold alongside AlphaFold2, OpenFold or ColabFold models &mdash; is what
+      makes this stage informative.
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="table-scroll">
+    <table>
+      <caption>Sequence and structural agreement between the supplied models.</caption>
+      <thead>
+        <tr><th>Pair</th><th>Sequence identity</th><th>C&alpha; RMSD (&#8491;)</th><th>Superposed atoms</th></tr>
+      </thead>
+      <tbody>
+        {% for alignment in result.consensus.alignments %}
+        <tr>
+          <td class="mono">{{ alignment.label_a }} vs {{ alignment.label_b }}</td>
+          <td class="num">{{ '%.1f'|format(alignment.identity * 100) }}%</td>
+          <td class="num">{{ alignment.rmsd }}</td>
+          <td class="num">{{ alignment.n_superposed_atoms }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <caption>
+        Per-pocket consensus. Agreement values are the confidence-weighted fraction of
+        possible agreeing model pairs of each kind; see the methods appendix.
+      </caption>
+      <thead>
+        <tr>
+          <th>Group</th><th>Evidence</th><th>Detected by</th>
+          <th>Cross-family agreement</th><th>Same-family agreement</th>
+          <th>Per-source druggability</th><th>Centroid spread</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for group in result.consensus.groups %}
+        <tr>
+          <td class="num">{{ group.group_id }}</td>
+          <td>
+            <span class="badge badge-{{ 'cross' if group.evidence_label == 'cross-family' else ('same' if group.evidence_label == 'same-family-only' else 'single') }}">
+              {{ group.evidence_label }}
+            </span>
+          </td>
+          <td>{{ group.n_models_detecting }}/{{ group.n_models_total }}
+            &mdash; {{ group.members|map(attribute='source_display_name')|join(', ') }}
+          </td>
+          <td class="num">{{ '%.2f'|format(group.cross_family_agreement) }}</td>
+          <td class="num">{{ '%.2f'|format(group.same_family_agreement) }}</td>
+          <td class="num">
+            {% for member in group.members %}
+              {{ member.source_display_name }} #{{ member.pocket_rank }}:
+              {{ '%.3f'|format(member.druggability_score) if member.druggability_score is not none else 'n/a' }}{% if not loop.last %}<br>{% endif %}
+            {% endfor %}
+          </td>
+          <td class="num">{{ group.mean_pairwise_centroid_distance if group.mean_pairwise_centroid_distance is not none else '&ndash;'|safe }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h3>What each group means</h3>
+  {% for group in result.consensus.groups[:result.top_pockets_requested] %}
+  <p class="caveat caveat-{{ 'none' if group.evidence_label == 'cross-family' else ('low' if group.evidence_label == 'same-family-only' else 'moderate') }}">
+    <strong>Group {{ group.group_id }}.</strong> {{ group.consensus_note }}
+  </p>
+  {% endfor %}
+
+  {% if result.consensus.notes %}
+  <ul class="plain">
+    {% for note in result.consensus.notes %}<li>{{ note }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------------ #}
+{# 6. Pocket images                                                     #}
+{# ------------------------------------------------------------------ #}
+{% if pocket_images %}
+<section id="images">
+  <h2>Pocket locations</h2>
+  <p class="section-note">
+    C&alpha; trace of the model, oriented along its two principal axes. Lining residues
+    are drawn as filled circles coloured by their own prediction confidence, using the
+    same bands as the plot above, so a pocket sitting in poorly-predicted structure is
+    visible at a glance.
+  </p>
+  <div class="pocket-gallery">
+    {% for image in pocket_images %}
+    <figure>
+      {{ image.svg|safe }}
+      <figcaption>
+        <strong>Pocket {{ image.pocket.rank }}</strong> &mdash;
+        volume {{ '%.0f'|format(image.pocket.volume) if image.pocket.volume is not none else 'n/a' }} &#8491;&sup3;,
+        score {{ '%.3f'|format(image.pocket.druggability_score) if image.pocket.druggability_score is not none else 'n/a' }},
+        caveat <em>{{ image.pocket.confidence.level.value }}</em>.
+      </figcaption>
+    </figure>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------------ #}
+{# 7. MD setup                                                          #}
+{# ------------------------------------------------------------------ #}
+{% if result.md_setup %}
+<section id="md">
+  <h2>Molecular dynamics setup</h2>
+  <p class="section-note">
+    Pocketscribe generated ready-to-run GROMACS inputs. It did not run, and will never
+    run, a simulation.
+  </p>
+
+  <dl class="params">
+    <dt>Output directory</dt><dd class="mono">{{ result.md_setup.output_dir }}</dd>
+    <dt>Force field</dt><dd>{{ result.md_setup.force_field }} with {{ result.md_setup.water_model }} water</dd>
+    <dt>Box</dt><dd>{{ result.md_setup.box_shape }}, {{ result.md_setup.box_padding_nm }} nm padding</dd>
+    <dt>Ions</dt><dd>neutralising counter-ions plus {{ result.md_setup.salt_concentration_M }} M NaCl</dd>
+    {% if result.md_setup.target_pocket_rank %}
+    <dt>Target pocket</dt><dd>rank {{ result.md_setup.target_pocket_rank }}</dd>
+    {% endif %}
+    {% if result.md_setup.removed_heteroatoms %}
+    <dt>Removed</dt><dd>{{ result.md_setup.removed_heteroatoms|join(', ') }}</dd>
+    {% endif %}
+  </dl>
+
+  <h3>Generated files</h3>
+  <ul class="file-list">
+    {% for file in result.md_setup.files %}
+    <li>
+      <span class="fname">{{ file.name }}</span>
+      <span class="fdesc">{{ file.description }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% if result.md_setup.notes %}
+  <div class="callout">
+    <ul class="plain" style="margin-bottom:0">
+      {% for note in result.md_setup.notes %}<li>{{ note }}</li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------------ #}
+{# 8. Narrative                                                         #}
+{# ------------------------------------------------------------------ #}
+<section id="narrative">
+  <h2>Interpretation</h2>
+  {% if result.narrative.enabled %}
+  <div class="narrative">
+    {% for paragraph in narrative_paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+    <p class="narrative-attribution">
+      Written by an AI language model ({{ result.narrative.model }}) from the structured
+      numerical output above &mdash; pocket scores, confidence statistics and consensus
+      results only; no coordinates were sent. It is an interpretation aid, not a
+      finding. Every claim in it should be checkable against the tables in this report.
+    </p>
+  </div>
+  {% else %}
+  <p class="empty">{{ result.narrative.skipped_reason }}</p>
+  <p class="section-note" style="margin-bottom:0">
+    This section is the only part of Pocketscribe that uses an external API, and it is
+    optional by design. Everything else in this report was produced offline by the
+    deterministic pipeline.
+  </p>
+  {% endif %}
+</section>
+
+{# ------------------------------------------------------------------ #}
+{# 9. Methods appendix                                                  #}
+{# ------------------------------------------------------------------ #}
+<section id="methods">
+  <h2>Methods and parameters</h2>
+  <p class="section-note">
+    Enough detail to reproduce this run, and to write a methods section that cites the
+    right software.
+  </p>
+
+  <h3>Pipeline</h3>
+  <dl class="params">
+    <dt>Pocketscribe</dt><dd>{{ tool_version }}</dd>
+    <dt>Run at</dt><dd>{{ generated_at }}</dd>
+    <dt>Structure source</dt>
+    <dd>{{ primary.source.display_name }} ({{ tier_label(primary.source.tier) }}),
+        confidence read as {{ primary.confidence.metric.value }}</dd>
+    <dt>Pocket detection</dt>
+    <dd>{{ primary_pockets.backend }} {{ primary_pockets.backend_version }}</dd>
+    {% for key, value in result.parameters.items() %}
+    <dt>{{ key }}</dt><dd>{{ value }}</dd>
+    {% endfor %}
+  </dl>
+
+  <h3>Confidence thresholds</h3>
+  <p>
+    Residues are banded at pLDDT 90, 70 and 50, following the conventional AlphaFold
+    interpretation. A contiguous run of {{ min_region_length }} or more residues below a
+    threshold is reported as a low-confidence region. A pocket&rsquo;s caveat level is
+    escalated on either a low mean confidence across its lining residues or a
+    substantial minority of untrustworthy residues, because a binding site needs only a
+    few badly-placed lining residues to be geometrically wrong.
+  </p>
+
+  {% if not primary_pockets.backend_is_fpocket %}
+  <h3>Built-in heuristic score (used in this run)</h3>
+  <p>
+    <code>0.40 &times; volume_term + 0.30 &times; buriedness_term + 0.30 &times; apolar_term</code>,
+    where <code>volume_term</code> is a logistic in pocket volume centred on 300 &#8491;&sup3;
+    with a 150 &#8491;&sup3; width, <code>buriedness_term</code> is the mean 7-direction
+    enclosure count rescaled to 0&ndash;1, and <code>apolar_term</code> is the fraction of
+    lining heavy atoms that are carbon, sulphur or selenium. The weights are a reasoned
+    ordering, not a fit to any benchmark, and the score carries no validation. It exists
+    so the pipeline can run without fpocket; it is not a druggability model.
+  </p>
+  {% endif %}
+
+  {% if result.consensus %}
+  <h3>Cross-model consensus</h3>
+  <p>
+    Structures were required to share at least
+    {{ '%.0f'|format(result.consensus.parameters.min_sequence_identity * 100) }}% sequence
+    identity. Residues were put into correspondence by global pairwise alignment, and
+    models were superposed onto the first by Kabsch superposition of corresponding
+    C&alpha; atoms. Two pockets from different models were treated as the same pocket only
+    when <em>both</em> criteria held: lining-residue Jaccard overlap (mapped through the
+    alignment) of at least {{ result.consensus.parameters.min_residue_jaccard }}, and
+    post-superposition centroid separation of at most
+    {{ result.consensus.parameters.centroid_tolerance }} &#8491;.
+  </p>
+  <p>
+    Each source is tagged with an architecture family &mdash; MSA/co-evolution-based
+    (AlphaFold2, OpenFold, ColabFold, Boltz) or single-sequence language model (ESMFold).
+    For a matched group, every pair of detecting models is classified as cross-family or
+    same-family. Agreement is the sum of pair weights divided by the number of pairs of
+    that kind that the input set could have produced, so 1.0 means every possible
+    agreement of that kind occurred.
+    {% if result.consensus.parameters.confidence_weighting %}
+    Pair weights are the product of the two models&rsquo; mean pLDDT over the
+    pocket&rsquo;s lining residues, each rescaled to 0&ndash;1, so a pocket predicted
+    confidently by both models counts for more than one predicted marginally by both.
+    {% else %}
+    Confidence weighting was disabled for this run, so every agreeing pair counts equally.
+    {% endif %}
+    A source whose family is unknown never counts as cross-family.
+  </p>
+  {% endif %}
+
+  <h3>Reporting</h3>
+  <p>
+    Figures are inline SVG generated in pure Python, so this report is a single file that
+    opens offline. The confidence palette was validated for lightness band, chroma,
+    colour-vision-deficiency separation and contrast against the figure surface; band
+    membership is additionally readable from vertical position and the labelled
+    thresholds, so no information is carried by colour alone.
+  </p>
+
+  <h3>Built on &mdash; cite these, not only Pocketscribe</h3>
+  <p class="section-note">
+    Pocketscribe is an integration layer. The science in this report was done by the
+    tools below, and a methods section should cite them directly.
+  </p>
+  <ul class="plain">
+    {% for citation in citations %}
+    <li><strong>{{ citation.name }}</strong> &mdash; {{ citation.reference }}</li>
+    {% endfor %}
+  </ul>
+</section>
+
+{# ------------------------------------------------------------------ #}
+{# 10. Disclaimer                                                       #}
+{# ------------------------------------------------------------------ #}
+<section id="disclaimer">
+  <div class="disclaimer">
+    <h2>Scope and limitations</h2>
+    <p>
+      <strong>This analysis is for research use only.</strong> It is not a medical
+      device, not a diagnostic, and carries no clinical or therapeutic claim of any
+      kind. Nothing in it should be used to support a statement about treating any
+      disease in any patient.
+    </p>
+    <p>
+      <strong>This is a predicted structure, not an experimental one.</strong> Every
+      pocket described here exists in a computational model. Predicted models can place
+      side chains wrongly, close cavities that are open in reality, and open cavities
+      that are not. Apo predictions in particular often miss the conformational change
+      that accompanies ligand binding. The confidence caveats attached to each pocket
+      are the first thing to read, not a footnote.
+    </p>
+    <p>
+      <strong>Pocket detection and druggability scoring are heuristics.</strong> A high
+      score means a cavity has the geometry and chemistry that tend to accompany
+      ligandable sites. It is not evidence that any compound binds, and it says nothing
+      about selectivity, affinity or tractability.
+    </p>
+    <p>
+      <strong>No simulation was run.</strong> The MD section generates input files. Their
+      parameters are defaults chosen to be reasonable, not a protocol validated for this
+      system.
+    </p>
+    <p style="margin-bottom:0">
+      <strong>This tool is triage, not judgement.</strong> It exists to help a group
+      decide where to spend expert time, docking campaigns, simulation and experiments
+      &mdash; never to replace them, and never to replace a structural biologist reading
+      the structure.
+    </p>
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ #}
+{# 11. How to cite                                                      #}
+{# ------------------------------------------------------------------ #}
+<section id="cite">
+  <h2>How to cite</h2>
+  <p>
+    If this report contributed to published work, please cite Pocketscribe together with
+    the tools it wrapped &mdash; listed under &ldquo;Built on&rdquo; above. Citing the
+    wrapper without the underlying methods misattributes the science.
+  </p>
+  <div class="card">
+    <p class="mono" style="margin-bottom:0">
+      Adedeji, J. A. Pocketscribe: confidence-aware binding-pocket triage and molecular
+      dynamics setup for predicted protein structures (version {{ tool_version }}).
+      Available at https://github.com/jonahnki/pocketscribe
+    </p>
+  </div>
+  <p style="margin-bottom:0">
+    A machine-readable <span class="mono">CITATION.cff</span> ships with the repository.
+  </p>
+</section>
+
+{% endblock %}

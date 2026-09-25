@@ -1,0 +1,92 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pocketscribe"
+version = "0.1.0"
+description = "Confidence-aware binding-pocket triage and MD setup for predicted protein structures"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "John Adeyemo Adedeji" },
+]
+maintainers = [
+    { name = "John Adeyemo Adedeji" },
+]
+keywords = [
+    "structural-biology",
+    "drug-discovery",
+    "binding-site",
+    "pocket-detection",
+    "molecular-dynamics",
+    "alphafold",
+    "esmfold",
+    "colabfold",
+    "protein-structure-prediction",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
+dependencies = [
+    "biopython>=1.81",
+    "jinja2>=3.1",
+    "numpy>=1.24",
+    "pydantic>=2.5",
+    "pyyaml>=6.0",
+    "scipy>=1.10",
+    "typer>=0.9",
+]
+
+[project.optional-dependencies]
+narrative = ["anthropic>=0.40"]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/jonahnki/pocketscribe"
+Repository = "https://github.com/jonahnki/pocketscribe"
+Issues = "https://github.com/jonahnki/pocketscribe/issues"
+
+[project.scripts]
+pocketscribe = "pocketscribe.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["pocketscribe*"]
+
+[tool.setuptools.package-data]
+pocketscribe = ["report/templates/*.html", "report/templates/*.css"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+    "E501",  # long lines are handled by the formatter, not by hand-wrapping prose
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Typer declares CLI options as function-call defaults; that is the framework's own
+# idiom, not an accident.
+"pocketscribe/cli.py" = ["B008"]

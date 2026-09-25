@@ -1,0 +1,239 @@
+cff-version: 1.2.0
+title: >-
+  Pocketscribe: confidence-aware binding-pocket triage and molecular dynamics
+  setup for predicted protein structures
+message: >-
+  If you use this software, please cite it together with the tools it
+  integrates. Pocketscribe introduces no new pocket-detection algorithm,
+  druggability model or force field; fpocket, GROMACS, CHARMM36m and the
+  structure-prediction models do that work, and each is listed under
+  "references" below and in the README's "Built on" section.
+type: software
+authors:
+  - given-names: John
+    family-names: Adedeji
+    name-particle: Adeyemo
+    orcid: 'https://orcid.org/0009-0004-1257-4551'
+    affiliation: 'Osun State University, Osogbo, Osun State, Nigeria'
+repository-code: 'https://github.com/jonahnki/pocketscribe'
+url: 'https://github.com/jonahnki/pocketscribe'
+abstract: >-
+  Pocketscribe takes a protein structure predicted by AlphaFold2, OpenFold,
+  ColabFold, ESMFold or Boltz and produces a single self-contained report
+  covering structure quality control, binding-pocket detection, druggability
+  scoring caveated by the prediction's own per-residue confidence, optional
+  cross-model pocket consensus, and ready-to-run GROMACS input files. Its
+  distinguishing feature is treating per-residue prediction confidence as a
+  first-class signal that caveats every downstream pocket claim, rather than
+  analysing a predicted structure as if it were experimental. Its cross-model
+  consensus module scores pocket agreement in an architecture-family-aware way,
+  reporting agreement between independent method families separately from, and
+  as stronger evidence than, agreement within one family. Research use only.
+keywords:
+  - structural biology
+  - drug discovery
+  - binding site prediction
+  - pocket detection
+  - molecular dynamics
+  - AlphaFold
+  - ESMFold
+  - ColabFold
+  - protein structure prediction
+  - research software
+license: MIT
+version: 0.1.0
+date-released: '2026-09-25'
+references:
+  - type: article
+    title: >-
+      Fpocket: an open source platform for ligand pocket detection
+    authors:
+      - family-names: Le Guilloux
+        given-names: Vincent
+      - family-names: Schmidtke
+        given-names: Peter
+      - family-names: Tuffery
+        given-names: Pierre
+    journal: BMC Bioinformatics
+    volume: 10
+    start: 168
+    year: 2009
+    doi: 10.1186/1471-2105-10-168
+  - type: article
+    title: >-
+      Understanding and predicting druggability. A high-throughput method for
+      detection of drug binding sites
+    authors:
+      - family-names: Schmidtke
+        given-names: Peter
+      - family-names: Barril
+        given-names: Xavier
+    journal: Journal of Medicinal Chemistry
+    volume: 53
+    start: 5858
+    end: 5867
+    year: 2010
+    doi: 10.1021/jm100574m
+  - type: article
+    title: >-
+      GROMACS: High performance molecular simulations through multi-level
+      parallelism from laptops to supercomputers
+    authors:
+      - family-names: Abraham
+        given-names: Mark James
+      - family-names: Murtola
+        given-names: Teemu
+      - family-names: Schulz
+        given-names: Roland
+      - family-names: Páll
+        given-names: Szilárd
+      - family-names: Smith
+        given-names: Jeremy C.
+      - family-names: Hess
+        given-names: Berk
+      - family-names: Lindahl
+        given-names: Erik
+    journal: SoftwareX
+    volume: 1
+    start: 19
+    end: 25
+    year: 2015
+    doi: 10.1016/j.softx.2015.06.001
+  - type: article
+    title: >-
+      CHARMM36m: an improved force field for folded and intrinsically
+      disordered proteins
+    authors:
+      - family-names: Huang
+        given-names: Jing
+      - family-names: Rauscher
+        given-names: Sarah
+      - family-names: Nawrocki
+        given-names: Grzegorz
+      - family-names: Ran
+        given-names: Ting
+      - family-names: Feig
+        given-names: Michael
+      - family-names: de Groot
+        given-names: Bert L.
+      - family-names: Grubmüller
+        given-names: Helmut
+      - family-names: MacKerell
+        given-names: Alexander D.
+    journal: Nature Methods
+    volume: 14
+    start: 71
+    end: 73
+    year: 2017
+    doi: 10.1038/nmeth.4067
+  - type: article
+    title: Highly accurate protein structure prediction with AlphaFold
+    authors:
+      - family-names: Jumper
+        given-names: John
+      - family-names: Evans
+        given-names: Richard
+      - family-names: Pritzel
+        given-names: Alexander
+    journal: Nature
+    volume: 596
+    start: 583
+    end: 589
+    year: 2021
+    doi: 10.1038/s41586-021-03819-2
+  - type: article
+    title: >-
+      OpenFold: retraining AlphaFold2 yields new insights into its learning
+      mechanisms and capacity for generalization
+    authors:
+      - family-names: Ahdritz
+        given-names: Gustaf
+      - family-names: Bouatta
+        given-names: Nazim
+      - family-names: Floristean
+        given-names: Christina
+    journal: Nature Methods
+    volume: 21
+    start: 1514
+    end: 1524
+    year: 2024
+    doi: 10.1038/s41592-024-02272-z
+  - type: article
+    title: 'ColabFold: making protein folding accessible to all'
+    authors:
+      - family-names: Mirdita
+        given-names: Milot
+      - family-names: Schütze
+        given-names: Konstantin
+      - family-names: Moriwaki
+        given-names: Yoshitaka
+      - family-names: Heo
+        given-names: Lim
+      - family-names: Ovchinnikov
+        given-names: Sergey
+      - family-names: Steinegger
+        given-names: Martin
+    journal: Nature Methods
+    volume: 19
+    start: 679
+    end: 682
+    year: 2022
+    doi: 10.1038/s41592-022-01488-1
+  - type: article
+    title: >-
+      Evolutionary-scale prediction of atomic-level protein structure with a
+      language model
+    authors:
+      - family-names: Lin
+        given-names: Zeming
+      - family-names: Akin
+        given-names: Halil
+      - family-names: Rao
+        given-names: Roshan
+    journal: Science
+    volume: 379
+    start: 1123
+    end: 1130
+    year: 2023
+    doi: 10.1126/science.ade2574
+  - type: article
+    title: 'Boltz-1: democratizing biomolecular interaction modeling'
+    authors:
+      - family-names: Wohlwend
+        given-names: Jeremy
+      - family-names: Corso
+        given-names: Gabriele
+      - family-names: Passaro
+        given-names: Saro
+    journal: bioRxiv
+    year: 2024
+    doi: 10.1101/2024.11.19.624167
+  - type: article
+    title: >-
+      Biopython: freely available Python tools for computational molecular
+      biology and bioinformatics
+    authors:
+      - family-names: Cock
+        given-names: Peter J. A.
+      - family-names: Antao
+        given-names: Tiago
+      - family-names: Chang
+        given-names: Jeffrey T.
+    journal: Bioinformatics
+    volume: 25
+    start: 1422
+    end: 1423
+    year: 2009
+    doi: 10.1093/bioinformatics/btp163
+  - type: article
+    title: >-
+      A solution for the best rotation to relate two sets of vectors
+    authors:
+      - family-names: Kabsch
+        given-names: Wolfgang
+    journal: Acta Crystallographica Section A
+    volume: 32
+    start: 922
+    end: 923
+    year: 1976
+    doi: 10.1107/S0567739476001873

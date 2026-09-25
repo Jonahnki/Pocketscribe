@@ -1,0 +1,6 @@
+HEADER pocket2 lining atoms
+ATOM      1  CA  ASP A  45      30.000  20.000  15.000  1.00 62.30           C
+ATOM      2  CB  ASP A  45      30.800  20.600  15.700  1.00 62.30           C
+ATOM      3  CA  SER A  48      31.500  21.000  16.000  1.00 58.10           C
+ATOM      4  CA  GLY A  51      29.000  21.500  16.500  1.00 44.90           C
+END

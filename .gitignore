@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Testing and tooling
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+
+# Pocketscribe output
+*.html
+!pocketscribe/report/templates/*.html
+md_setup/
+demo_report.html
+demo_consensus_report.html
+
+# fpocket leaves its output next to the input
+*_out/
+
+# Editors and OS
+.idea/
+.vscode/
+.DS_Store
+
+# Test fixture, not an fpocket run result (survives the *_out/ rule above)
+!tests/fixtures/fpocket_out/

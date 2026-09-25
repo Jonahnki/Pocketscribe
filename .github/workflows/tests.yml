@@ -1,0 +1,98 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+        include:
+          - os: macos-latest
+            python-version: "3.12"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[dev]'
+
+      - name: Lint
+        run: ruff check .
+
+      # The suite runs without fpocket, GROMACS or network access by design: it uses
+      # bundled synthetic structures and a checked-in fpocket output format sample.
+      - name: Test
+        run: pytest -q
+
+      - name: Demo runs end to end
+        run: |
+          pocketscribe demo --output /tmp/demo.html
+          test -s /tmp/demo.html
+
+      - name: Consensus demo runs end to end
+        run: |
+          pocketscribe demo --consensus --output /tmp/demo_consensus.html
+          grep -q "same-family-only" /tmp/demo_consensus.html
+          grep -q "cross-family" /tmp/demo_consensus.html
+
+      - name: MD setup generates valid input files
+        run: |
+          cd /tmp && pocketscribe demo --md-setup --output /tmp/demo_md.html
+          test -s /tmp/md_setup/md.mdp
+          test -s /tmp/md_setup/PROTOCOL.md
+
+      - name: Example structures are reproducible from the generator
+        run: |
+          python scripts/make_example_structures.py
+          git diff --exit-code -- pocketscribe/data/example_structures
+
+  fpocket:
+    name: Integration with real fpocket
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: "3.12"
+          channels: conda-forge
+
+      - name: Install fpocket and Pocketscribe
+        shell: bash -el {0}
+        run: |
+          conda install -y -c conda-forge fpocket
+          pip install -e '.[dev]'
+          fpocket --version || true
+
+      # The rest of the suite is deliberately fpocket-free so contributors can work
+      # without it. This job is the one place the real binary is exercised.
+      - name: Run against the real fpocket binary
+        shell: bash -el {0}
+        run: |
+          pocketscribe run \
+            --pdb pocketscribe/data/example_structures/AF-SYNTH01-F1-model_v4.pdb \
+            --source alphafold2 \
+            --output /tmp/fpocket_report.html
+          test -s /tmp/fpocket_report.html
+          grep -q "fpocket" /tmp/fpocket_report.html

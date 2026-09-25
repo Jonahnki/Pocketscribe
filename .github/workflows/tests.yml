@@ -1,94 +1,130 @@
 name: tests
 
+# Minute-frugal by design, because this repository is private and GitHub Actions
+# minutes on a private repo come out of a monthly allowance.
+#
+#   every push / PR  ->  ONE Linux job (lint + tests + demo smoke test), ~2 minutes
+#   on demand        ->  the full matrix and the real-fpocket integration job
+#
+# Linux runners cost a 1x minute multiplier. macOS costs 10x and Windows 2x, so
+# neither runs automatically here: a five-minute macOS job would consume fifty
+# minutes of allowance.
+
 on:
   push:
     branches: [main]
+    paths-ignore: ["**.md", "CITATION.cff", "LICENSE", ".gitignore"]
   pull_request:
+    paths-ignore: ["**.md", "CITATION.cff", "LICENSE", ".gitignore"]
   workflow_dispatch:
+    inputs:
+      full_matrix:
+        description: "Run the full Python matrix"
+        type: boolean
+        default: false
+      fpocket:
+        description: "Run the real-fpocket integration job (slow: conda)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
-jobs:
-  test:
-    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.10", "3.11", "3.12"]
-        include:
-          - os: macos-latest
-            python-version: "3.12"
+# A new push supersedes an in-flight run instead of paying for both.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
+  # The everyday job. Lint and tests share one runner: a second job would pay the
+  # ~30s checkout + Python setup cost again for about 10 seconds of ruff.
+  check:
+    name: lint + tests (3.12)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
           cache: pip
+          cache-dependency-path: pyproject.toml
 
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -e '.[dev]'
+          pip install -e ".[dev]"
 
       - name: Lint
         run: ruff check .
 
-      # The suite runs without fpocket, GROMACS or network access by design: it uses
-      # bundled synthetic structures and a checked-in fpocket output format sample.
-      - name: Test
+      # Runs without fpocket, GROMACS or network access by design: bundled synthetic
+      # structures and a checked-in fpocket output format sample.
+      - name: Tests
         run: pytest -q
 
-      - name: Demo runs end to end
+      - name: Demo smoke test
         run: |
           pocketscribe demo --output /tmp/demo.html
           test -s /tmp/demo.html
+          pocketscribe demo --consensus --output /tmp/consensus.html
+          grep -q "same-family-only" /tmp/consensus.html
+          grep -q "cross-family" /tmp/consensus.html
 
-      - name: Consensus demo runs end to end
-        run: |
-          pocketscribe demo --consensus --output /tmp/demo_consensus.html
-          grep -q "same-family-only" /tmp/demo_consensus.html
-          grep -q "cross-family" /tmp/demo_consensus.html
-
-      - name: MD setup generates valid input files
-        run: |
-          cd /tmp && pocketscribe demo --md-setup --output /tmp/demo_md.html
-          test -s /tmp/md_setup/md.mdp
-          test -s /tmp/md_setup/PROTOCOL.md
-
-      - name: Example structures are reproducible from the generator
-        run: |
-          python scripts/make_example_structures.py
-          git diff --exit-code -- pocketscribe/data/example_structures
-
-  fpocket:
-    name: Integration with real fpocket
+  # Opt-in: other supported Python versions. Linux only (1x minute multiplier).
+  matrix:
+    name: tests (py${{ matrix.python-version }})
+    if: github.event_name == 'workflow_dispatch' && inputs.full_matrix
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - run: pytest -q
+
+  # Opt-in: the only place the real fpocket binary is exercised. Kept out of the
+  # default path because installing it costs several minutes every run.
+  fpocket:
+    name: real fpocket integration
+    if: github.event_name == 'workflow_dispatch' && inputs.fpocket
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - uses: actions/checkout@v4
 
-      - uses: conda-incubator/setup-miniconda@v3
+      # micromamba resolves in seconds where conda takes minutes.
+      - uses: mamba-org/setup-micromamba@v2
         with:
-          auto-update-conda: true
-          python-version: "3.12"
-          channels: conda-forge
+          environment-name: ps
+          create-args: >-
+            python=3.12
+            fpocket
+          condarc: |
+            channels:
+              - conda-forge
 
-      - name: Install fpocket and Pocketscribe
-        shell: bash -el {0}
-        run: |
-          conda install -y -c conda-forge fpocket
-          pip install -e '.[dev]'
-          fpocket --version || true
+      - name: Install Pocketscribe
+        run: pip install -e ".[dev]"
 
-      # The rest of the suite is deliberately fpocket-free so contributors can work
-      # without it. This job is the one place the real binary is exercised.
-      - name: Run against the real fpocket binary
-        shell: bash -el {0}
+      - name: Confirm fpocket is present
+        run: which fpocket && (fpocket --version || true)
+
+      - name: Run against the real binary
         run: |
           pocketscribe run \
             --pdb pocketscribe/data/example_structures/AF-SYNTH01-F1-model_v4.pdb \

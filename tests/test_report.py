@@ -375,3 +375,52 @@ def test_confidence_plot_handles_an_empty_profile():
         fraction_below_50=0.0,
     )
     assert "No per-residue confidence" in confidence_plot(empty)
+
+
+# --------------------------------------------------------------------------------------
+# fpocket-only template branches
+#
+# The default CI job has no fpocket installed, so without these tests the parts of the
+# template that render only for fpocket reports would never run anywhere except a
+# contributor's machine. That is exactly how a consensus sentence once leaked into
+# every single-structure fpocket report unnoticed. The backend flag is forced on a
+# built-in run, which exercises the template without needing the binary.
+# --------------------------------------------------------------------------------------
+
+
+def _render_as_fpocket(tmp_path, inputs):
+    config = RunConfig()
+    config.narrative.enabled = False
+    config.pockets.backend = "builtin"
+    result, parsed = run_pipeline(
+        inputs=inputs, config=config, md_output_dir=tmp_path / "md",
+        allow_backend_fallback=True,
+    )
+    for pocket_set in result.pocket_sets:
+        pocket_set.backend_is_fpocket = True
+    return render_report(result, parsed, tmp_path / "report.html").read_text()
+
+
+def test_fpocket_single_structure_report_does_not_mention_consensus(tmp_path, af2_path):
+    html = _render_as_fpocket(
+        tmp_path,
+        [StructureInput(path=af2_path, source_id="alphafold2", label=af2_path.name)],
+    )
+    assert "Reproducibility of these numbers" in html
+    assert "Cross-model consensus" not in html
+    assert "consensus results above" not in html
+    assert "not detected with fpocket" not in html
+
+
+def test_fpocket_consensus_report_explains_consensus_is_unaffected(
+    tmp_path, af2_path, esmfold_path
+):
+    html = _render_as_fpocket(
+        tmp_path,
+        [
+            StructureInput(path=af2_path, source_id="alphafold2", label=af2_path.name),
+            StructureInput(path=esmfold_path, source_id="esmfold", label=esmfold_path.name),
+        ],
+    )
+    assert "Reproducibility of these numbers" in html
+    assert "consensus results above are unaffected" in html

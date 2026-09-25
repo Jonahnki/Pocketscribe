@@ -531,10 +531,12 @@
     reports, a small difference in the volume column is expected and is not evidence that
     anything changed.
   </p>
+  {% if result.consensus %}
   <p>
-    Cross-model consensus is unaffected: pockets are matched on lining-residue overlap
-    and centroid distance, neither of which is stochastic.
+    The consensus results above are unaffected: pockets are matched across models on
+    lining-residue overlap and centroid distance, neither of which is stochastic.
   </p>
+  {% endif %}
   {% endif %}
 
   {% if not primary_pockets.backend_is_fpocket %}

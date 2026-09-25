@@ -288,11 +288,11 @@ footer strong { color: var(--ink-2); }
   <figure>
     __CONFIDENCE_PLOT__
     <figcaption>
-      <strong>Per-residue pLDDT along the sequence.</strong> The trough between residues
-      ~120 and ~150 is a region the model is not confident about. Pocket&nbsp;2 of this
-      structure sits inside it — so although it scores respectably on geometry, the report
-      flags it <em>moderate</em> and says plainly that its shape and volume are uncertain.
-      That distinction is the whole point of the tool.
+      <strong>Per-residue pLDDT along the sequence.</strong> The trough in the middle is
+      a stretch the model is not confident about. A cavity lined by those residues can
+      still score respectably on geometry — and the report says so, while flagging that
+      its shape and volume are not supported by the prediction. Separating those two
+      statements is the whole point of the tool.
     </figcaption>
   </figure>
 
@@ -460,7 +460,7 @@ pocketscribe run \
 
 
 CONSENSUS_DIAGRAM = r"""<svg viewBox="0 0 760 330" role="img" width="100%"
-  aria-label="Three predictions of one protein, grouped into two architecture families. AlphaFold2 and OpenFold belong to the MSA family; ESMFold is a single-sequence language model. Pocket 1 was detected by all three, giving cross-family support. Pocket 2 was detected only by AlphaFold2 and OpenFold and missed by ESMFold, giving same-family support only.">
+  aria-label="Schematic. Three predictions of one protein, grouped into two architecture families: AlphaFold2 and OpenFold are MSA-based, ESMFold is a single-sequence language model. A cavity detected by all three has cross-family support. A cavity detected only by AlphaFold2 and OpenFold, and missed by ESMFold, has same-family support only.">
   <rect width="760" height="330" fill="#fcfcfb"/>
   <g font-family="ui-sans-serif, system-ui, sans-serif">
 
@@ -495,7 +495,7 @@ CONSENSUS_DIAGRAM = r"""<svg viewBox="0 0 760 330" role="img" width="100%"
 
   <!-- outcome: cross-family -->
   <rect x="16" y="194" width="360" height="118" rx="8" fill="#fff" stroke="#0B4FBF" stroke-width="1.5"/>
-  <text x="32" y="218" font-size="13.5" font-weight="650" fill="#0B4FBF">Pocket 1 — cross-family</text>
+  <text x="32" y="218" font-size="13.5" font-weight="650" fill="#0B4FBF">Found by both families</text>
   <text x="32" y="238" font-size="11" fill="#898781">DETECTED BY</text>
   <rect x="32" y="246" width="80" height="22" rx="4" fill="#0B4FBF"/>
   <text x="72" y="261" font-size="11" fill="#fff" text-anchor="middle">AlphaFold2</text>
@@ -508,7 +508,7 @@ CONSENSUS_DIAGRAM = r"""<svg viewBox="0 0 760 330" role="img" width="100%"
 
   <!-- outcome: same-family only -->
   <rect x="396" y="194" width="348" height="118" rx="8" fill="#fff" stroke="#B8860B" stroke-width="1.5"/>
-  <text x="412" y="218" font-size="13.5" font-weight="650" fill="#B8860B">Pocket 2 — same-family only</text>
+  <text x="412" y="218" font-size="13.5" font-weight="650" fill="#B8860B">Found by one family only</text>
   <text x="412" y="238" font-size="11" fill="#898781">DETECTED BY</text>
   <rect x="412" y="246" width="80" height="22" rx="4" fill="#0B4FBF"/>
   <text x="452" y="261" font-size="11" fill="#fff" text-anchor="middle">AlphaFold2</text>
@@ -524,6 +524,11 @@ CONSENSUS_DIAGRAM = r"""<svg viewBox="0 0 760 330" role="img" width="100%"
 
 
 def main() -> None:
+    # Note for future edits: never hardcode a pocket rank, score or volume into the
+    # page copy. Those depend on which backend produced the report -- fpocket and the
+    # built-in fallback rank pockets differently, and fpocket volumes vary between runs
+    # -- so a specific claim here silently goes stale. Keep the prose about *kinds* of
+    # finding and let the linked report carry the numbers.
     print("Building the Pocketscribe site")
     generate_demo_reports()
 

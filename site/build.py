@@ -30,22 +30,45 @@ ROOT = SITE.parent
 DEMO = SITE / "demo"
 
 
+def interpreter() -> str:
+    """The Python that has Pocketscribe installed.
+
+    Prefer the project's own virtualenv over whatever interpreter happened to launch
+    this script: running `python site/build.py` from an activated conda base is the
+    normal case, and that interpreter does not have the dependencies.
+    """
+    venv = ROOT / ".venv" / "bin" / "python"
+    if venv.is_file():
+        return str(venv)
+    return sys.executable
+
+
 def generate_demo_reports() -> None:
     """Run the CLI to produce the example reports the site links to."""
     DEMO.mkdir(parents=True, exist_ok=True)
+    python = interpreter()
+    print(f"  using {python}")
+
     for args, name in (
         ([], "report.html"),
         (["--consensus"], "consensus.html"),
     ):
         print(f"  generating demo/{name}")
         result = subprocess.run(
-            [sys.executable, "-m", "pocketscribe.cli", "demo", *args,
+            [python, "-m", "pocketscribe.cli", "demo", *args,
              "--output", str(DEMO / name)],
             cwd=ROOT, capture_output=True, text=True,
         )
         if result.returncode != 0:
+            hint = ""
+            if "ModuleNotFoundError" in result.stderr:
+                hint = (
+                    "\n\nHint: Pocketscribe is not installed for this interpreter. "
+                    "Create the project venv and install it:\n"
+                    "    python3 -m venv .venv && ./.venv/bin/pip install -e '.[dev]'"
+                )
             raise SystemExit(
-                f"failed to generate {name}:\n{result.stdout}\n{result.stderr}"
+                f"failed to generate {name}:\n{result.stdout}\n{result.stderr}{hint}"
             )
 
 

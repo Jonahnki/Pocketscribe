@@ -278,22 +278,61 @@ def test_single_structure_report_is_unaffected_by_the_consensus_module(
 ):
     """Definition of done: single-structure runs are byte-for-byte unaffected.
 
-    The two renders are produced independently; only the timestamp may differ, so it is
-    normalised out before comparison.
+    Pinned to the built-in backend deliberately. What this test asserts is that the
+    consensus module's *existence* changes nothing about a single-structure run -- a
+    property of Pocketscribe's own wiring. Running it through fpocket would instead be
+    testing fpocket's reproducibility, which is a different question with a different
+    answer: see :func:`test_fpocket_volumes_are_not_expected_to_be_reproducible`.
     """
     first_result, first_html = _render(
         tmp_path / "a",
         [StructureInput(path=af2_path, source_id="alphafold2", label=af2_path.name)],
+        pockets__backend="builtin",
     )
     second_result, second_html = _render(
         tmp_path / "b",
         [StructureInput(path=af2_path, source_id="alphafold2", label=af2_path.name)],
+        pockets__backend="builtin",
     )
     assert first_result.consensus is None
     assert second_result.consensus is None
 
     normalise = lambda text, result: text.replace(result.generated_at, "TIMESTAMP")  # noqa: E731
     assert normalise(first_html, first_result) == normalise(second_html, second_result)
+
+
+def test_fpocket_volumes_are_not_expected_to_be_reproducible():
+    """Documents a property of fpocket that surprised us, so nobody re-asserts otherwise.
+
+    fpocket estimates pocket volume by Monte Carlo integration. Two runs over the same
+    structure therefore report volumes differing by roughly a percent, while the
+    druggability scores and the resulting ranking stay stable. Observed on fpocket
+    4.2.3: the same pocket came back as 1564 A^3 and then 1555 A^3.
+
+    Consequences that the rest of the code has to respect:
+
+    * a report generated with the fpocket backend is not byte-reproducible, and no test
+      may assert that it is;
+    * the consensus module must not match pockets on volume equality (it matches on
+      lining-residue overlap and centroid distance, neither of which is stochastic);
+    * the methods appendix says so, so a user comparing two runs is not left puzzled.
+
+    This test asserts the *design response*, not fpocket's behaviour, so that it stays
+    meaningful on a machine without fpocket installed.
+    """
+    from pathlib import Path
+
+    from pocketscribe.models import ConsensusParameters
+
+    # Pocket matching must not depend on volume at all.
+    parameters = ConsensusParameters()
+    assert not hasattr(parameters, "volume_tolerance")
+
+    source = (Path(__file__).parent.parent / "pocketscribe" / "consensus.py").read_text()
+    matcher = source.split("def _match_score")[1].split("\ndef ")[0]
+    assert "volume" not in matcher, (
+        "pocket correspondence must not use volume: fpocket volumes are stochastic"
+    )
 
 
 # --------------------------------------------------------------------------------------

@@ -521,6 +521,22 @@
     few badly-placed lining residues to be geometrically wrong.
   </p>
 
+  {% if primary_pockets.backend_is_fpocket %}
+  <h3>Reproducibility of these numbers</h3>
+  <p>
+    fpocket estimates pocket volume by Monte Carlo integration, so <strong>volumes are
+    not exactly reproducible between runs</strong>: re-running this analysis on the same
+    structure typically shifts each volume by around a percent. Druggability scores, the
+    pocket ranking and the lining-residue lists are stable. If you are comparing two
+    reports, a small difference in the volume column is expected and is not evidence that
+    anything changed.
+  </p>
+  <p>
+    Cross-model consensus is unaffected: pockets are matched on lining-residue overlap
+    and centroid distance, neither of which is stochastic.
+  </p>
+  {% endif %}
+
   {% if not primary_pockets.backend_is_fpocket %}
   <h3>Built-in heuristic score (used in this run)</h3>
   <p>

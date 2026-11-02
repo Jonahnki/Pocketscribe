@@ -473,6 +473,7 @@ above. A machine-readable [`CITATION.cff`](CITATION.cff) ships with the reposito
 
 > Adedeji, J. A. Pocketscribe: confidence-aware binding-pocket triage and molecular
 > dynamics setup for predicted protein structures (version 0.1.0).
+> doi:[10.5281/zenodo.22967237](https://doi.org/10.5281/zenodo.22967237).
 > https://github.com/jonahnki/pocketscribe
 
 ---

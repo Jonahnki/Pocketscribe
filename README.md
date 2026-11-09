@@ -440,8 +440,6 @@ doi:[10.1126/science.abj8754](https://doi.org/10.1126/science.abj8754)).
   Modelling* **15**, 359–363 (1997) — the grid buriedness scan the offline fallback
   backend follows. Relevant only when fpocket is unavailable.
 
-Please verify each reference against its source before it goes into a manuscript.
-
 ---
 
 ## Limitations

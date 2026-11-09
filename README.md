@@ -93,9 +93,6 @@ this section will be corrected.
 pip install pocketscribe
 ```
 
-> Not yet published to PyPI. Until it is, install from source — see
-> [From source](#from-source) below.
-
 ### fpocket (external dependency)
 
 Pocket detection is done by **fpocket**, which is a C program and is not installed by

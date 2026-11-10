@@ -1,37 +1,34 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pocketscribe"
 version = "0.1.0"
-description = "Confidence-aware binding-pocket triage and MD setup for predicted protein structures"
+description = "Confidence-aware binding-pocket triage for predicted protein structures"
 readme = "README.md"
+license = {text = "MIT"}
 requires-python = ">=3.10"
-license = { text = "MIT" }
 authors = [
-    { name = "John Adeyemo Adedeji" },
-]
-maintainers = [
-    { name = "John Adeyemo Adedeji" },
+    {name = "John Adeyemo Adedeji", email = "johnnaadedeji2018@gmail.com"},
 ]
 keywords = [
-    "structural-biology",
-    "drug-discovery",
-    "binding-site",
-    "pocket-detection",
-    "molecular-dynamics",
-    "alphafold",
-    "esmfold",
-    "colabfold",
-    "protein-structure-prediction",
+    "structural bioinformatics",
+    "binding pocket",
+    "druggability",
+    "AlphaFold",
+    "pLDDT",
+    "fpocket",
+    "molecular dynamics",
+    "GROMACS",
+    "drug discovery",
+    "predicted protein structures",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: POSIX :: Linux",
-    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -40,53 +37,40 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Chemistry",
 ]
 dependencies = [
-    "biopython>=1.81",
-    "jinja2>=3.1",
+    "biopython>=1.80",
     "numpy>=1.24",
-    "pydantic>=2.5",
-    "pyyaml>=6.0",
-    "scipy>=1.10",
-    "typer>=0.9",
 ]
 
 [project.optional-dependencies]
-narrative = ["anthropic>=0.40"]
 dev = [
-    "pytest>=7.4",
-    "pytest-cov>=4.1",
-    "ruff>=0.4",
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.1.0",
 ]
 
 [project.urls]
-Homepage = "https://github.com/jonahnki/pocketscribe"
-Repository = "https://github.com/jonahnki/pocketscribe"
-Issues = "https://github.com/jonahnki/pocketscribe/issues"
+Homepage = "https://github.com/Jonahnki/Pocketscribe"
+Documentation = "https://github.com/Jonahnki/Pocketscribe#readme"
+Repository = "https://github.com/Jonahnki/Pocketscribe"
+Issues = "https://github.com/Jonahnki/Pocketscribe/issues"
+Zenodo = "https://doi.org/10.5281/zenodo.22967237"
+Demo = "https://pocketscribe.vercel.app"
 
 [project.scripts]
-pocketscribe = "pocketscribe.cli:app"
+pocketscribe = "pocketscribe.cli:main"
 
 [tool.setuptools.packages.find]
+where = ["."]
 include = ["pocketscribe*"]
-
-[tool.setuptools.package-data]
-pocketscribe = ["report/templates/*.html", "report/templates/*.css"]
+exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
-filterwarnings = ["ignore::DeprecationWarning"]
+addopts = "-v --tb=short"
 
 [tool.ruff]
 line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B"]
-ignore = [
-    "E501",  # long lines are handled by the formatter, not by hand-wrapping prose
-]
-
-[tool.ruff.lint.per-file-ignores]
-# Typer declares CLI options as function-call defaults; that is the framework's own
-# idiom, not an accident.
-"pocketscribe/cli.py" = ["B008"]
+select = ["E", "F", "W", "I", "N", "UP"]
